@@ -70,9 +70,9 @@ MatrixT operator+(MatrixT &matrix1, MatrixT &matrix2){
 
 template<typename T>
 MatrixT operator-(MatrixT &matrix1, MatrixT &matrix2){
-    MatrixT targetMatrix;
-    for (int i = 0; i < matrix.getRows(); i++){
-        for (int j = 0; j < matrix.getCols(); j++){
+    MatrixT targetMatrix(matrix1.getRows(), matrix1.getRows());
+    for (int i = 0; i < matrix1.getRows(); i++){
+        for (int j = 0; j < matrix1.getCols(); j++){
             targetMatrix(i, j) = matrix1(i, j) - matrix2(i, j); 
         }
     }
@@ -102,10 +102,10 @@ public:
     friend ostream& operator<<<T>(ostream &out, MatrixT &matrix);
     T& operator()(int rows, int cols) const;
     MatrixT& operator=(const MatrixT &matrix);
-    friend MatrixT operator*<T>(MatrixT &matrix, const T value); // TODO
-    friend MatrixT operator*<T>(const T value, MatrixT &matrix); // TODO
-    friend MatrixT operator+<T>(MatrixT &matrix1, MatrixT &matrix2); // TODO
-    friend MatrixT operator-<T>(MatrixT &matrix1, MatrixT &matrix2); // TODO
+    friend MatrixT operator*<T>(MatrixT &matrix, const T value);
+    friend MatrixT operator*<T>(const T value, MatrixT &matrix);
+    friend MatrixT operator+<T>(MatrixT &matrix1, MatrixT &matrix2);
+    friend MatrixT operator-<T>(MatrixT &matrix1, MatrixT &matrix2);
     /* template<int K> // TODO
     friend MatrixT operator*(const MatrixT &matrix1, const MatrixT &matrix2){
         MatrixT targetMatrix;
@@ -123,7 +123,6 @@ public:
 //Constructors
 template<typename T>
 MatrixT::Matrix(int rows, int cols): rows(rows), cols(cols){
-    cout << "Constructor begin" << this << endl;
     this->matrix = new T*[rows];
     for (int i = 0; i < rows; i++){
         this->matrix[i] = new T[cols];
@@ -135,19 +134,15 @@ MatrixT::Matrix(int rows, int cols): rows(rows), cols(cols){
         }
         
     }
-    
-    cout << "Constructor end" << this << endl << *this << endl;
 }
 
 template<typename T>
 MatrixT::Matrix(const MatrixT &matrix): MatrixT(matrix.getRows(), matrix.getCols()){
-    cout << "Constructor-copy begin" << this << endl;
     for (int i = 0; i < this->rows; i++){
         for (int j = 0; j < this->cols; j++){
             this->matrix[i][j] = matrix(i, j);
         }
     }
-    cout << "Constructor-copy end" << this << endl << *this << endl;
 }
 
 template<typename T>
@@ -245,35 +240,27 @@ void MatrixT::resize(const int rows, const int cols){
 //Overloading operations
 template<typename T>
 MatrixT& MatrixT::operator=(const MatrixT &matrix){
-    cout << "Operator= " << this << endl;
     if(this == &matrix) return *this;
 
-    for (int i = 0; i < this->rows; i++){
-        delete[] this->matrix[rows];
+    for(int i = 0; i < this->rows; i++){
+        delete[] this->matrix[i];
     }
     delete[] this->matrix;
+    this->matrix = nullptr;
 
     this->rows = matrix.getRows();
     this->cols = matrix.getCols();
 
-    this->matrix = new T*[rows];
-    for (int i = 0; i < rows; i++){
-        this->matrix[i] = new T[cols];
+    this->matrix = new T*[this->rows];
+    for(int i = 0; i < this->rows; i++){
+        this->matrix[i] = new T[this->cols];
     }
 
-    for (int i = 0; i < this->rows; i++){
-        delete[] this->matrix[rows];
-    }
-    delete[] this->matrix;
-
-    cout << "Object deleted" << endl;
-
-    for (int i = 0; i < this->rows; i++){
+    for(int i = 0; i < this->rows; i++){
         for (int j = 0; j < this->cols; j++){
             this->matrix[i][j] = matrix(i, j); 
         }
     }
-    cout << "Operator= " << endl << *this << endl;
     return *this;
 }
 
@@ -288,13 +275,11 @@ T& MatrixT::operator()(int rows, int cols) const{
 //Destructors
 template<typename T>
 MatrixT::~Matrix(){
-    cout << "Destructor begin" << this << endl;
     for (int i = 0; i < this->rows; i++){
-        delete[] this->matrix[rows];
+        delete[] this->matrix[i];
     }
     delete[] this->matrix;
     this->matrix = nullptr;
-    cout << "Destructor end" << this << endl;
 }
 
 #endif

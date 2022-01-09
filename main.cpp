@@ -14,7 +14,7 @@ int main(){
     Matrix<int> m2(3, 3);
     m2.random(0, 10);
     cout << m2 << endl;
-    m2 = m1 * 3;
+    m2 = m1 - m2;
     cout << m2;
     /* srand(static_cast<unsigned int>(time(0)));
     rand();
