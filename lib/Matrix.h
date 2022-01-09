@@ -93,7 +93,7 @@ public:
     int getRows() const;
     int getCols() const;
     int getSize() const;
-    void transposition(); // TODO
+    void transposition();
     void random(const T min, const T max);
     void resize(int rows, int cols); // TODO
 
@@ -217,24 +217,13 @@ void MatrixT::random(const T min, const T max){
 
 template<typename T>
 void MatrixT::resize(const int rows, const int cols){
-    T **tempArray = new T*[this->rows];
-    for (int i = 0; i < this->rows; i++){
-        tempArray[i] = new T[this->cols];
-    }
+    MatrixT tempMatrix(rows, cols);
     for (int i = 0; i < this->rows; i++){
         for (int j = 0; j < this->cols; j++){
-            tempArray[i][j] = this->matrix[i][j];
+            tempMatrix(i, j) = this->matrix[i][j];
         }
     }
-    for (int i = 0; i < this->rows; i++){
-        delete[] this->matrix[this->rows];
-    }
-    MatrixT matrix(rows, cols);
-    matrix = tempArray;
-
-    for (int i = 0; i < this->rows; i++){
-        delete[] tempArray[this->rows];
-    }
+    *this = tempMatrix;
 }
 
 //Overloading operations
