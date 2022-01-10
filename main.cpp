@@ -11,7 +11,8 @@ int main(){
     Matrix<int> m1(3, 3);
     m1.random(0, 10);
     cout << m1 << endl;
-    m1.resize(2, 2);
+
+    m1.resize(2, 1);
     cout << m1;
     /* srand(static_cast<unsigned int>(time(0)));
     rand();

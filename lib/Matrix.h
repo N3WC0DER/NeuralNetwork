@@ -80,11 +80,29 @@ MatrixT operator-(MatrixT &matrix1, MatrixT &matrix2){
 }
 
 template<typename T>
+MatrixT operator*(const MatrixT &matrix1, const MatrixT &matrix2){
+    assert(matrix1.getCols() == matrix2.getRows());
+
+    MatrixT targetMatrix(matrix1.getRows(), matrix2.getCols());
+    for (int i = 0; i < matrix1.getRows(); i++){
+        for (int j = 0; j < matrix2.getCols(); j++){
+            for (int k = 0; k < matrix1.getCols(); k++){
+                targetMatrix(i, j) += matrix1(i, k) * matrix2(k, j);
+            }
+        }
+    }
+    return targetMatrix;
+}
+
+template<typename T>
 class Matrix{
 private:
     T **matrix = nullptr;
     int rows = 0;
     int cols = 0;
+
+    void memoryAlloc();
+    void memoryClear();
 public:
     Matrix(int rows, int cols);
     Matrix(const MatrixT &matrix);
@@ -95,44 +113,30 @@ public:
     int getSize() const;
     void transposition();
     void random(const T min, const T max);
-    void resize(int rows, int cols); // TODO
+    void resize(int rows, int cols);
 
     ~Matrix();
 
     friend ostream& operator<<<T>(ostream &out, MatrixT &matrix);
     T& operator()(int rows, int cols) const;
+    void operator()();
     MatrixT& operator=(const MatrixT &matrix);
     friend MatrixT operator*<T>(MatrixT &matrix, const T value);
     friend MatrixT operator*<T>(const T value, MatrixT &matrix);
     friend MatrixT operator+<T>(MatrixT &matrix1, MatrixT &matrix2);
     friend MatrixT operator-<T>(MatrixT &matrix1, MatrixT &matrix2);
-    /* template<int K> // TODO
-    friend MatrixT operator*(const MatrixT &matrix1, const MatrixT &matrix2){
-        MatrixT targetMatrix;
-        for (int i = 0; i < matrix1.getRows(); i++){
-            for (int j = 0; j < K; j++){
-                for (int k = 0; k < cols; k++){
-                    targetMatrix(i, j) += matrix1(i, k) * matrix2(k, j);
-                }
-            }
-        }
-        return targetMatrix;
-    } */
+    friend MatrixT operator*<T>(const MatrixT &matrix1, const MatrixT &matrix2);
 };
 
 //Constructors
 template<typename T>
 MatrixT::Matrix(int rows, int cols): rows(rows), cols(cols){
-    this->matrix = new T*[rows];
-    for (int i = 0; i < rows; i++){
-        this->matrix[i] = new T[cols];
-    }
-
+    memoryAlloc();
+    
     for (int i = 0; i < this->rows; i++){
         for (int j = 0; j < this->cols; j++){
             this->matrix[i][j] = 0;
-        }
-        
+        } 
     }
 }
 
@@ -160,7 +164,7 @@ MatrixT::Matrix(const initializer_list<initializer_list<T>> &list): MatrixT(list
        countCols.push_back((list.begin()+i)->size());
     }
 
-    if(sizeList < this->rows * this->cols){
+    if(sizeList < this->getSize()){
         for(int i = 0; i < listRows; i++){
             for(int j = 0; j < countCols[i]; j++){
                 this->matrix[i][j] = *((list.begin()+i)->begin()+j);
@@ -176,6 +180,23 @@ MatrixT::Matrix(const initializer_list<initializer_list<T>> &list): MatrixT(list
 }
 
 //Methods
+template<typename T>
+void MatrixT::memoryAlloc(){
+    this->matrix = new T*[this->rows];
+    for (int i = 0; i < this->rows; i++){
+        this->matrix[i] = new T[this->cols];
+    }
+}
+
+template<typename T>
+void MatrixT::memoryClear(){
+    for (int i = 0; i < this->rows; i++){
+        delete[] this->matrix[i];
+    }
+    delete[] this->matrix;
+    this->matrix = nullptr;
+}
+
 template<typename T>
 int MatrixT::getRows() const{
     return this->rows;
@@ -194,9 +215,12 @@ int MatrixT::getSize() const{
 template<typename T>
 void MatrixT::transposition(){
     MatrixT tempMatrix = *this;
+
+    memoryClear();
     int temp = this->rows;
     this->rows = this->cols;
     this->cols = temp;
+    memoryAlloc();
 
     for (int i = 0; i < this->rows; i++){
         for (int j = 0; j < this->cols; j++){
@@ -217,13 +241,49 @@ void MatrixT::random(const T min, const T max){
 
 template<typename T>
 void MatrixT::resize(const int rows, const int cols){
-    MatrixT tempMatrix(rows, cols);
-    for (int i = 0; i < this->rows; i++){
-        for (int j = 0; j < this->cols; j++){
-            tempMatrix(i, j) = this->matrix[i][j];
+    assert(!(rows == this->rows && cols == this->cols));
+
+    int tempRows = this->rows;
+    int tempCols = this->cols;
+    T **temp = new T*[tempRows];
+    for (int i = 0; i < tempRows; i++){
+        temp[i] = new T[tempCols];
+    }
+
+    for (int i = 0; i < tempRows; i++){
+        for (int j = 0; j < tempCols; j++){
+            temp[i][j] = this->matrix[i][j];
         }
     }
-    *this = tempMatrix;
+    memoryClear();
+    this->rows = rows;
+    this->cols = cols;
+    memoryAlloc();
+
+    for (int i = 0; i < this->rows; i++){
+        for (int j = 0; j < this->cols; j++){
+            this->matrix[i][j] = 0;
+        } 
+    }
+    if(this->getSize() < tempRows * tempCols){
+        for (int i = 0; i < this->rows; i++){
+            for (int j = 0; j < this->cols; j++){
+                this->matrix[i][j] = temp[i][j];
+            }
+        }
+    }else{
+        for (int i = 0; i < tempRows; i++){
+            for (int j = 0; j < tempCols; j++){
+                this->matrix[i][j] = temp[i][j];
+            }
+        }
+    }
+
+    for (int i = 0; i < tempRows; i++){
+        delete[] temp[i];
+    }
+    delete[] temp;
+    temp = nullptr;
 }
 
 //Overloading operations
@@ -231,18 +291,17 @@ template<typename T>
 MatrixT& MatrixT::operator=(const MatrixT &matrix){
     if(this == &matrix) return *this;
 
-    for(int i = 0; i < this->rows; i++){
-        delete[] this->matrix[i];
-    }
-    delete[] this->matrix;
-    this->matrix = nullptr;
+    memoryClear();
 
     this->rows = matrix.getRows();
     this->cols = matrix.getCols();
 
-    this->matrix = new T*[this->rows];
-    for(int i = 0; i < this->rows; i++){
-        this->matrix[i] = new T[this->cols];
+    memoryAlloc();
+
+    for (int i = 0; i < this->rows; i++){
+        for (int j = 0; j < this->cols; j++){
+            this->matrix[i][j] = 0;
+        } 
     }
 
     for(int i = 0; i < this->rows; i++){
@@ -261,14 +320,18 @@ T& MatrixT::operator()(int rows, int cols) const{
     return this->matrix[rows][cols];
 }
 
+template<typename T>
+void MatrixT::operator()(){
+    for (int i = 0; i < this->rows; i++){
+        for (int j = 0; j < this->cols; j++){
+            this->matrix[i][j] = 0;
+        } 
+    }
+}
 //Destructors
 template<typename T>
 MatrixT::~Matrix(){
-    for (int i = 0; i < this->rows; i++){
-        delete[] this->matrix[i];
-    }
-    delete[] this->matrix;
-    this->matrix = nullptr;
+    memoryClear();
 }
 
 #endif
