@@ -1,18 +1,17 @@
 #pragma once
 
-#include "Eigen/Eigen/Dense"
-
 class NeuralNetwork{
 private:
     int inputNodes,
         hiddenNodes,
         outputNodes;
-    float learningRate;
+    double learningRate;
 
-    Eigen::Matrix3f weightsInputHidden;
-    Eigen::Matrix3f weightsHiddenOutput;
+    Matrix<double> weightsInputHidden;
+    Matrix<double> weightsHiddenOutput;
 public:
-    NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, float learningRate);
-    void train();
-    Eigen::MatrixXf query(Eigen::MatrixXf inputs);
+    NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, double learningRate);
+    void train(Matrix<double> &inputs, Matrix<double> &targets);
+    Matrix<double> query(Matrix<double> &inputs);
+    void print();
 };

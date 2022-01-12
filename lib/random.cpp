@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include "Eigen/Eigen/Dense"
+#include "Matrix.h"
 
 int getRandomNumber(int min, int max){
     static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0); 
@@ -11,27 +11,18 @@ float getRandomFloatNumber(float min, float max){
     return static_cast<float>(rand() * fraction * (max - min + 1) + min);
 }
 
-Eigen::MatrixXf randomMatrix(Eigen::MatrixXf matrix, int rows = 0, int cols = 0){
-    if (rows == 0 && cols == 0){
-        for (int i = 0; i < matrix.rows(); i++){
-            for (int j = 0; j < matrix.cols(); j++){
-                matrix(i, j) = (static_cast<float>(rand() % 100) / 100) - 0.5;
-            }
-        }
-    }else{
-        for (int i = 0; i < rows; i++){
-            for (int j = 0; j < cols; j++){
-                matrix(i, j) = (static_cast<float>(rand() % 100) / 100) - 0.5;
-            }
+/* Matrix<double> randomMatrix(Matrix<double> &matrix){
+    for (int i = 0; i < matrix.getRows(); i++){
+        for (int j = 0; j < matrix.getCols(); j++){
+            matrix(i, j) = static_cast<double>(rand() % 100) - 0.5;
         }
     }
-
     return matrix;
-}
+} */
 
-Eigen::MatrixXf sigmoida(Eigen::MatrixXf matrix){
-    for (int i = 0; i < matrix.rows(); i++){
-        for (int j = 0; j < matrix.cols(); j++){
+Matrix<double> sigmoida(Matrix<double> &matrix){
+    for (int i = 0; i < matrix.getRows(); i++){
+        for (int j = 0; j < matrix.getCols(); j++){
             matrix(i, j) = 1 / (1 + exp(-(matrix(i, j))));
         }
     }

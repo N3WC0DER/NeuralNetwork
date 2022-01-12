@@ -1,10 +1,10 @@
 #pragma once
-#include "Eigen/Eigen/Dense"
+#include "Matrix.h"
 
 int getRandomNumber(int min, int max);
 
 float getRandomFloatNumber(float min, float max);
 
-Eigen::MatrixXf randomMatrix(Eigen::MatrixXf matrix, int rows = 0, int cols = 0);
+// Matrix<double> randomMatrix(Matrix<double> &matrix);
 
-Eigen::MatrixXf sigmoida(Eigen::MatrixXf matrix);
+Matrix<double> sigmoida(Matrix<double> &matrix);
