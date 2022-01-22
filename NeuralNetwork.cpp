@@ -19,34 +19,24 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
 }
 
 void NeuralNetwork::train(Matrix<double> &inputs, Matrix<double> &targets){
-    targets.transposition();
-
-    Matrix<double> hiddenInputs = this->weightsInputHidden * inputs;
-    cout << hiddenInputs;
+    //cout << this->weightsHiddenOutput.getRows() << " " << this->weightsHiddenOutput.getCols();
+    Matrix<double> hiddenInputs = this->weightsInputHidden * inputs.transposition();
     Matrix<double> hiddenOutputs = sigmoida(hiddenInputs);
-    cout << hiddenOutputs;
 
     Matrix<double> finalInputs = this->weightsHiddenOutput * hiddenOutputs;
-    cout << finalInputs;
     Matrix<double> finalOutputs = sigmoida(finalInputs);
-    cout << finalOutputs;
 
-    Matrix<double> outputErrors = targets - finalOutputs;
-    cout << outputErrors;
+    Matrix<double> outputErrors = targets.transposition() - finalOutputs;
     
-    this->weightsHiddenOutput.transposition();
-    cout << weightsHiddenOutput;
-    Matrix<double> hiddenErrors = this->weightsHiddenOutput * outputErrors;
-    cout << hiddenErrors;
+    Matrix<double> hiddenErrors = this->weightsHiddenOutput.transposition() * outputErrors;
 
-    this->weightsHiddenOutput = this->weightsHiddenOutput + this->learningRate * (1.0 - finalOutputs).multiply(outputErrors.multiply(finalOutputs)) * hiddenOutputs;
-    this->weightsInputHidden = this->weightsHiddenOutput + this->learningRate * (1.0 - hiddenOutputs).multiply(hiddenErrors.multiply(hiddenOutputs)) * inputs;
+    this->weightsHiddenOutput = this->weightsHiddenOutput + this->learningRate * (1.0 - finalOutputs).multiply(outputErrors.multiply(finalOutputs)) * hiddenOutputs.transposition();
+    this->weightsInputHidden = this->weightsInputHidden + this->learningRate * (1.0 - hiddenOutputs).multiply(hiddenErrors.multiply(hiddenOutputs)) * inputs;
 
 }
 
 Matrix<double> NeuralNetwork::query(Matrix<double> &inputs){
-    inputs.transposition();
-    Matrix<double> hiddenInputs = this->weightsInputHidden * inputs;
+    Matrix<double> hiddenInputs = this->weightsInputHidden * inputs.transposition();
     Matrix<double> hiddenOutputs = sigmoida(hiddenInputs);
 
     Matrix<double> finalInputs = this->weightsHiddenOutput * hiddenOutputs;
@@ -58,4 +48,16 @@ Matrix<double> NeuralNetwork::query(Matrix<double> &inputs){
 void NeuralNetwork::print(){
     cout << "IH:" << endl << this->weightsInputHidden << endl;
     cout << "HO:" << endl << this->weightsHiddenOutput << endl;
+}
+
+int NeuralNetwork::getInputNodes() const{
+    return this->inputNodes;
+}
+
+int NeuralNetwork::getHiddenNodes() const{
+    return this->hiddenNodes;
+}
+
+int NeuralNetwork::getOutputNodes() const{
+    return this->outputNodes;
 }

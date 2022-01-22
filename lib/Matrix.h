@@ -16,8 +16,8 @@ ostream& operator<<(ostream &out, MatrixT &matrix){
     int max = 0;
     for (int i = 0; i < matrix.getRows(); i++){
         for (int j = 0; j < matrix.getCols(); j++){
-            if((log10(static_cast<double>(matrix(i, j))) + 1 / 1) > max){
-                max = log10(static_cast<double>(matrix(i, j))) + 1 / 1;
+            if((log10(matrix(i, j)) + 1 / 1) > max){
+                max = log10(matrix(i, j)) + 1 / 1;
             }
         }
     }
@@ -48,7 +48,7 @@ MatrixT operator*(const MatrixT &matrix1, const MatrixT &matrix2){
 }
 
 template<typename T>
-MatrixT operator*(MatrixT &matrix, const T value){
+MatrixT operator*(const MatrixT &matrix, const T value){
     MatrixT targetMatrix(matrix.getRows(), matrix.getCols());
 
     for (int i = 0; i < matrix.getRows(); i++){
@@ -60,7 +60,7 @@ MatrixT operator*(MatrixT &matrix, const T value){
 }
 
 template<typename T>
-MatrixT operator*(const T value, MatrixT &matrix){
+MatrixT operator*(const T value, const MatrixT &matrix){
     MatrixT targetMatrix(matrix.getRows(), matrix.getCols());
     for (int i = 0; i < matrix.getRows(); i++){
         for (int j = 0; j < matrix.getCols(); j++){
@@ -71,10 +71,10 @@ MatrixT operator*(const T value, MatrixT &matrix){
 }
 
 template<typename T>
-MatrixT operator+(MatrixT &matrix1, MatrixT &matrix2){
+MatrixT operator+(const MatrixT &matrix1, const MatrixT &matrix2){
     assert(matrix1.getRows() == matrix2.getRows() && matrix1.getCols() == matrix2.getCols());
 
-    MatrixT targetMatrix(matrix1.getRows(), matrix1.getRows());
+    MatrixT targetMatrix(matrix1.getRows(), matrix1.getCols());
     for (int i = 0; i < matrix1.getRows(); i++){
         for (int j = 0; j < matrix1.getCols(); j++){
             targetMatrix(i, j) = matrix1(i, j) + matrix2(i, j); 
@@ -84,8 +84,8 @@ MatrixT operator+(MatrixT &matrix1, MatrixT &matrix2){
 }
 
 template<typename T>
-MatrixT operator+(MatrixT &matrix, const T value){
-    MatrixT targetMatrix(matrix.getRows(), matrix.getRows());
+MatrixT operator+(const MatrixT &matrix, const T value){
+    MatrixT targetMatrix(matrix.getRows(), matrix.getCols());
     for (int i = 0; i < matrix.getRows(); i++){
         for (int j = 0; j < matrix.getCols(); j++){
             targetMatrix(i, j) = matrix(i, j) + value; 
@@ -95,8 +95,8 @@ MatrixT operator+(MatrixT &matrix, const T value){
 }
 
 template<typename T>
-MatrixT operator+(const T value, MatrixT &matrix){
-    MatrixT targetMatrix(matrix.getRows(), matrix.getRows());
+MatrixT operator+(const T value, const MatrixT &matrix){
+    MatrixT targetMatrix(matrix.getRows(), matrix.getCols());
     for (int i = 0; i < matrix.getRows(); i++){
         for (int j = 0; j < matrix.getCols(); j++){
             targetMatrix(i, j) = matrix(i, j) + value; 
@@ -106,7 +106,7 @@ MatrixT operator+(const T value, MatrixT &matrix){
 }
 
 template<typename T>
-MatrixT operator-(MatrixT &matrix1, MatrixT &matrix2){
+MatrixT operator-(const MatrixT &matrix1, const MatrixT &matrix2){
     assert(matrix1.getRows() == matrix2.getRows() && matrix1.getCols() == matrix2.getCols());
 
     MatrixT targetMatrix(matrix1.getRows(), matrix1.getCols());
@@ -119,8 +119,8 @@ MatrixT operator-(MatrixT &matrix1, MatrixT &matrix2){
 }
 
 template<typename T>
-MatrixT operator-(MatrixT &matrix, const T value){
-    MatrixT targetMatrix(matrix.getRows(), matrix.getRows());
+MatrixT operator-(const MatrixT &matrix, const T value){
+    MatrixT targetMatrix(matrix.getRows(), matrix.getCols());
     for (int i = 0; i < matrix.getRows(); i++){
         for (int j = 0; j < matrix.getCols(); j++){
             targetMatrix(i, j) = matrix(i, j) - value; 
@@ -130,8 +130,8 @@ MatrixT operator-(MatrixT &matrix, const T value){
 }
 
 template<typename T>
-MatrixT operator-(const T value, MatrixT &matrix){
-    MatrixT targetMatrix(matrix.getRows(), matrix.getRows());
+MatrixT operator-(const T value, const MatrixT &matrix){
+    MatrixT targetMatrix(matrix.getRows(), matrix.getCols());
     for (int i = 0; i < matrix.getRows(); i++){
         for (int j = 0; j < matrix.getCols(); j++){
             targetMatrix(i, j) = matrix(i, j) - value; 
@@ -151,17 +151,18 @@ private:
     void memoryClear();
 public:
     Matrix();
-    Matrix(int rows, int cols);
+    Matrix(const int rows, const int cols);
     Matrix(const MatrixT &matrix);
+    Matrix(T **array, int rows, int cols);
     Matrix(const initializer_list<initializer_list<T>> &list);
 
     int getRows() const;
     int getCols() const;
     int getSize() const;
-    void transposition();
+    MatrixT transposition() const;
     void random(const T min, const T max);
     void resize(int rows, int cols);
-    MatrixT multiply(MatrixT matrix);
+    MatrixT multiply(const MatrixT &matrix) const;
 
     ~Matrix();
 
@@ -170,14 +171,14 @@ public:
     void operator()();
     MatrixT& operator=(const MatrixT &matrix);
     friend MatrixT operator*<T>(const MatrixT &matrix1, const MatrixT &matrix2);
-    friend MatrixT operator*<T>(MatrixT &matrix, const T value);
-    friend MatrixT operator*<T>(const T value, MatrixT &matrix);
-    friend MatrixT operator+<T>(MatrixT &matrix1, MatrixT &matrix2);
-    friend MatrixT operator+<T>(MatrixT &matrix, const T value);
-    friend MatrixT operator+<T>(const T value, MatrixT &matrix);
-    friend MatrixT operator-<T>(MatrixT &matrix1, MatrixT &matrix2);
-    friend MatrixT operator-<T>(MatrixT &matrix, const T value);
-    friend MatrixT operator-<T>(const T value, MatrixT &matrix);
+    friend MatrixT operator*<T>(const MatrixT &matrix, const T value);
+    friend MatrixT operator*<T>(const T value, const MatrixT &matrix);
+    friend MatrixT operator+<T>(const MatrixT &matrix1, const MatrixT &matrix2);
+    friend MatrixT operator+<T>(const MatrixT &matrix, const T value);
+    friend MatrixT operator+<T>(const T value, const MatrixT &matrix);
+    friend MatrixT operator-<T>(const MatrixT &matrix1, const MatrixT &matrix2);
+    friend MatrixT operator-<T>(const MatrixT &matrix, const T value);
+    friend MatrixT operator-<T>(const T value, const MatrixT &matrix);
 };
 
 //Constructors
@@ -185,7 +186,7 @@ template<typename T>
 MatrixT::Matrix(){}
 
 template<typename T>
-MatrixT::Matrix(int rows, int cols): rows(rows), cols(cols){
+MatrixT::Matrix(const int rows, const int cols): rows(rows), cols(cols){
     memoryAlloc();
     
     for (int i = 0; i < this->rows; i++){
@@ -200,6 +201,15 @@ MatrixT::Matrix(const MatrixT &matrix): MatrixT(matrix.getRows(), matrix.getCols
     for (int i = 0; i < this->rows; i++){
         for (int j = 0; j < this->cols; j++){
             this->matrix[i][j] = matrix(i, j);
+        }
+    }
+}
+
+template<typename T>
+MatrixT::Matrix(T **array, int rows, int cols): MatrixT(rows, cols){
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            this->matrix[i][j] = array[i][j];
         }
     }
 }
@@ -268,34 +278,28 @@ int MatrixT::getSize() const{
 }
 
 template<typename T>
-void MatrixT::transposition(){
-    MatrixT tempMatrix = *this;
-
-    memoryClear();
-    int temp = this->rows;
-    this->rows = this->cols;
-    this->cols = temp;
-    memoryAlloc();
+MatrixT MatrixT::transposition() const{
+    MatrixT tempMatrix(this->getCols(), this->getRows());
 
     for (int i = 0; i < this->rows; i++){
         for (int j = 0; j < this->cols; j++){
-            this->matrix[i][j] = tempMatrix(j, i);
+            tempMatrix(j, i) = this->matrix[i][j];
         }
     }
+
+    return tempMatrix;
 }
 
 template<typename T>
-MatrixT MatrixT::multiply(MatrixT matrix){
+MatrixT MatrixT::multiply(const MatrixT &matrix) const{
     assert(matrix.getRows() == this->rows && matrix.getCols() == this->cols);
 
     MatrixT targetMatrix(this->getRows(), this->getCols());
-    for (size_t i = 0; i < targetMatrix.getRows(); i++){
-        for (size_t j = 0; j < targetMatrix.getCols(); i++){
+    for (int i = 0; i < targetMatrix.getRows(); i++){
+        for (int j = 0; j < targetMatrix.getCols(); j++){
             targetMatrix(i, j) = this->matrix[i][j] * matrix(i, j);
         }
-        
     }
-    
     return targetMatrix;
 }
 

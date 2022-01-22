@@ -23,7 +23,8 @@ float getRandomFloatNumber(float min, float max){
 Matrix<double> sigmoida(Matrix<double> &matrix){
     for (int i = 0; i < matrix.getRows(); i++){
         for (int j = 0; j < matrix.getCols(); j++){
-            matrix(i, j) = 1 / (1 + exp(-(matrix(i, j))));
+            cout << 1.0 + exp(-(matrix(i, j))) << endl;
+            matrix(i, j) = 1.0 / (1.0 + exp(-(matrix(i, j))));
         }
     }
     return matrix;
