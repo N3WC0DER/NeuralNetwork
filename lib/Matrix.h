@@ -247,19 +247,23 @@ MatrixT::Matrix(const initializer_list<initializer_list<T>> &list): MatrixT(list
 //Methods
 template<typename T>
 void MatrixT::memoryAlloc(){
-    this->matrix = new T*[this->rows];
-    for (int i = 0; i < this->rows; i++){
-        this->matrix[i] = new T[this->cols];
+    if(this->rows != 0 && this->cols != 0 && this->matrix == nullptr){
+        this->matrix = new T*[this->rows];
+        for (int i = 0; i < this->rows; i++){
+            this->matrix[i] = new T[this->cols];
+        }
     }
 }
 
 template<typename T>
 void MatrixT::memoryClear(){
-    for (int i = 0; i < this->rows; i++){
-        delete[] this->matrix[i];
+    if(this->rows != 0 && this->cols != 0 && this->matrix != nullptr){
+        for (int i = 0; i < this->rows; i++){
+            delete[] this->matrix[i];
+        }
+        delete[] this->matrix;
+        this->matrix = nullptr;
     }
-    delete[] this->matrix;
-    this->matrix = nullptr;
 }
 
 template<typename T>
