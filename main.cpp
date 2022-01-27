@@ -27,8 +27,8 @@ void trainNetwork(NeuralNetwork &network){
     vector<double> pixels;
     int index;
     vector<char> buff;
-    Matrix<double> targets(1, network.getOutputNodes());
-    Matrix<double> inputs(1, network.getInputNodes());
+    Matrix<double> targets(network.getOutputNodes(), 1);
+    Matrix<double> inputs(network.getInputNodes(), 1);
     for(int i = 0; i < 1; i++){
         for(int j = 0; j < lines[i].size(); j++){
             if(isdigit(lines[i][j])){
@@ -51,12 +51,12 @@ void trainNetwork(NeuralNetwork &network){
         }
 
         for(int j = 0; j < network.getOutputNodes(); j++){
-            targets(0, j) = 0.01;
-            if(j == index) targets(0, j) = 0.99;
+            targets(j, 0) = 0.01;
+            if(j == index) targets(j, 0) = 0.99;
         }
 
         for(int j = 0; j < network.getInputNodes(); j++){
-            inputs(0, j) = pixels[j];
+            inputs(j, 0) = pixels[j];
         }
 
         network.train(inputs, targets);
@@ -66,21 +66,9 @@ void trainNetwork(NeuralNetwork &network){
     trainDataset.close();
 }
 
-int main(){
-    srand(static_cast<unsigned int>(time(0)));
-    rand();
-
-    const int inputNodes = 784,
-              hidenNodes = 100,
-              outputNodes = 10;
-    double learningRate = 0.3;
-
-    NeuralNetwork network(inputNodes, hidenNodes, outputNodes, learningRate);
-
-    trainNetwork(network);
-
+void testNetwork(NeuralNetwork &network){
     ifstream testDataset;
-    testDataset.open("mnist_dataset/mnist_test.csv", ios::in);
+    testDataset.open("mnist_dataset/mnist_train.csv", ios::in);
 
     vector<string> lines;
     lines.resize(1);
@@ -130,9 +118,24 @@ int main(){
 
         Matrix<double> outputs = network.query(inputs);
         pixels.clear();
-        cout << outputs << endl;
+        cout << "------------" << i+1 << " attempts: " << endl;
+        cout << outputs << endl << endl;
     }
-    
     testDataset.close();
+}
+
+int main(){
+    srand(static_cast<unsigned int>(time(0)));
+    rand();
+
+    const int inputNodes = 784,
+              hidenNodes = 100,
+              outputNodes = 10;
+    double learningRate = 0.5;
+
+    NeuralNetwork network(inputNodes, hidenNodes, outputNodes, learningRate);
+
+    trainNetwork(network);
+    testNetwork(network);
     return 0;
 }
