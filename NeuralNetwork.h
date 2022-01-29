@@ -14,7 +14,6 @@ public:
 
     void train(const Matrix<double> &inputs, const Matrix<double> &targets);
     Matrix<double> query(const Matrix<double> &inputs);
-    void print();
     int getInputNodes() const;
     int getHiddenNodes() const;
     int getOutputNodes() const;

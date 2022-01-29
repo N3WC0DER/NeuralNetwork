@@ -1,7 +1,7 @@
 #include <iostream>
 #include "lib/Matrix.h"
 #include "NeuralNetwork.h"
-#include "lib/random.h"
+#include "lib/sigmoida.h"
 
 using namespace std;
 
@@ -14,8 +14,8 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
     this->weightsInputHidden.resize(this->hiddenNodes, this->inputNodes);
     this->weightsHiddenOutput.resize(this->outputNodes, this->hiddenNodes);
 
-    this->weightsInputHidden.random(-0.5, 0.5);
-    this->weightsHiddenOutput.random(-0.5, 0.5);
+    this->weightsInputHidden.random(-0.3, 0.3);
+    this->weightsHiddenOutput.random(-0.3, 0.3);
 }
 
 void NeuralNetwork::train(const Matrix<double> &inputs, const Matrix<double> &targets){
@@ -25,12 +25,12 @@ void NeuralNetwork::train(const Matrix<double> &inputs, const Matrix<double> &ta
     Matrix<double> finalInputs = this->weightsHiddenOutput * hiddenOutputs;
     Matrix<double> finalOutputs = sigmoida(finalInputs);
 
-    Matrix<double> outputErrors = targets - finalOutputs;
+    Matrix<double> outputErrors = finalOutputs - targets;
     
     Matrix<double> hiddenErrors = this->weightsHiddenOutput.transposition() * outputErrors;
 
-    this->weightsHiddenOutput = this->weightsHiddenOutput + (this->learningRate * (1.0 - finalOutputs).multiply(outputErrors.multiply(finalOutputs))) * hiddenOutputs.transposition();
-    this->weightsInputHidden = this->weightsInputHidden + (this->learningRate * (1.0 - hiddenOutputs).multiply(hiddenErrors.multiply(hiddenOutputs))) * inputs.transposition();
+    this->weightsHiddenOutput += this->learningRate * (1.0 - finalOutputs) % outputErrors % finalOutputs * hiddenOutputs.transposition();
+    this->weightsInputHidden += this->learningRate * (1.0 - hiddenOutputs) % hiddenErrors % hiddenOutputs * inputs.transposition();
 }
 
 Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs){
@@ -41,11 +41,6 @@ Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs){
     Matrix<double> finalOutputs = sigmoida(finalInputs);
 
     return finalOutputs;
-}
-
-void NeuralNetwork::print(){
-    cout << "IH:" << endl << this->weightsInputHidden << endl;
-    cout << "HO:" << endl << this->weightsHiddenOutput << endl;
 }
 
 int NeuralNetwork::getInputNodes() const{

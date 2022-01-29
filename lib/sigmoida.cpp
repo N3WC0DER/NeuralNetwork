@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include "random.h"
+#include "sigmoida.h"
 #include "Matrix.h"
 
 Matrix<double> sigmoida(const Matrix<double> &matrix){

@@ -6,21 +6,21 @@
 
 #include "lib/Matrix.h"
 #include "NeuralNetwork.h"
-#include "lib/random.h"
+#include "lib/sigmoida.h"
 
 using namespace std;
 
-void trainNetwork(NeuralNetwork &network){
+void trainNetwork(NeuralNetwork &network, const int countIteration){
     ifstream trainDataset;
     trainDataset.open("mnist_dataset/mnist_train.csv", ios::in);
     vector<string> lines;
-    lines.resize(1);
+    lines.resize(countIteration);
 
     string tempLine;
 
     trainDataset >> tempLine;
 
-    for(int i = 0; i < 1; i++){
+    for(int i = 0; i < countIteration; i++){
         trainDataset >> lines[i];
     }
 
@@ -29,7 +29,7 @@ void trainNetwork(NeuralNetwork &network){
     vector<char> buff;
     Matrix<double> targets(network.getOutputNodes(), 1);
     Matrix<double> inputs(network.getInputNodes(), 1);
-    for(int i = 0; i < 1; i++){
+    for(int i = 0; i < countIteration; i++){
         for(int j = 0; j < lines[i].size(); j++){
             if(isdigit(lines[i][j])){
                 if(j == 0){
@@ -66,18 +66,18 @@ void trainNetwork(NeuralNetwork &network){
     trainDataset.close();
 }
 
-void testNetwork(NeuralNetwork &network){
+void testNetwork(NeuralNetwork &network, const int countIteration){
     ifstream testDataset;
-    testDataset.open("mnist_dataset/mnist_train.csv", ios::in);
+    testDataset.open("mnist_dataset/mnist_test.csv", ios::in);
 
     vector<string> lines;
-    lines.resize(1);
+    lines.resize(countIteration);
 
     string tempLine;
 
     testDataset >> tempLine;
 
-    for(int i = 0; i < 1; i++){
+    for(int i = 0; i < countIteration; i++){
         testDataset >> lines[i];
     }
 
@@ -86,7 +86,8 @@ void testNetwork(NeuralNetwork &network){
     vector<char> buff;
     Matrix<double> targets(1, network.getOutputNodes());
     Matrix<double> inputs(1, network.getInputNodes());
-    for(int i = 0; i < 1; i++){
+    int result = 0;
+    for(int i = 0; i < countIteration; i++){
         for(int j = 0; j < lines[i].size(); j++){
             if(isdigit(lines[i][j])){
                 if(j == 0){
@@ -119,8 +120,20 @@ void testNetwork(NeuralNetwork &network){
         Matrix<double> outputs = network.query(inputs);
         pixels.clear();
         cout << "------------" << i+1 << " attempts: " << endl;
-        cout << outputs << endl << endl;
+
+        int maxIndex = 0;
+        for(int j = 0; j < network.getOutputNodes(); j++){
+            if(outputs(maxIndex, 0) < outputs(j, 0)) maxIndex = j;
+        }
+
+        cout << "Output network: " << maxIndex << endl;
+        cout << "Target output: " << index << endl;
+        cout << outputs(maxIndex, 0) << endl;
+        if(maxIndex == index) result++;
     }
+
+    cout << "Result: " << endl;
+    cout << (double) result / (double) countIteration * 100 << "% (" << result << "/" << countIteration << ")" << endl;
     testDataset.close();
 }
 
@@ -128,14 +141,14 @@ int main(){
     srand(static_cast<unsigned int>(time(0)));
     rand();
 
-    const int inputNodes = 784,
-              hidenNodes = 100,
+    /* const int inputNodes = 784,
+              hiddenNodes = 100,
               outputNodes = 10;
     double learningRate = 0.5;
 
-    NeuralNetwork network(inputNodes, hidenNodes, outputNodes, learningRate);
+    NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-    trainNetwork(network);
-    testNetwork(network);
+    trainNetwork(network, 60000);
+    testNetwork(network, 10000); */
     return 0;
 }
