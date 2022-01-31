@@ -141,14 +141,16 @@ int main(){
     srand(static_cast<unsigned int>(time(0)));
     rand();
 
-    /* const int inputNodes = 784,
+    const int inputNodes = 784,
               hiddenNodes = 100,
               outputNodes = 10;
     double learningRate = 0.5;
 
     NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-    trainNetwork(network, 60000);
-    testNetwork(network, 10000); */
+    trainNetwork(network, 1000);
+    testNetwork(network, 10);
+
+    system("pause");
     return 0;
 }
