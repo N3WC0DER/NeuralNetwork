@@ -17,4 +17,7 @@ public:
 	int getInputNodes() const;
 	int getHiddenNodes() const;
 	int getOutputNodes() const;
+
+	void saveWeightsInFile() const;
+	void receiveWeightsInFile();
 };

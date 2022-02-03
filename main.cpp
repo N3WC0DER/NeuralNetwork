@@ -3,6 +3,7 @@
 #include <cmath>
 #include <fstream>
 #include <cstring>
+#include <string>
 
 #include "lib/Matrix.h"
 #include "NeuralNetwork.h"
@@ -25,7 +26,7 @@ void trainNetwork(NeuralNetwork &network, const int countIteration){
 	}
 
 	vector<double> pixels;
-	int index;
+	int index = 0;
 	vector<char> buff;
 	Matrix<double> targets(network.getOutputNodes(), 1);
 	Matrix<double> inputs(network.getInputNodes(), 1);
@@ -37,7 +38,7 @@ void trainNetwork(NeuralNetwork &network, const int countIteration){
 					continue;
 				}
 				buff.push_back(lines[i][j]);
-				if(!(j == lines[i].size()-1)) continue;
+				if(j != lines[i].size()-1) continue;
 			}
 			if(buff.size() == 3) pixels.push_back((buff[0] - '0') * 100 + (buff[1] - '0') * 10 + (buff[2] - '0'));
 			else if(buff.size() == 2) pixels.push_back((buff[0] - '0') * 10 + buff[1] - '0');
@@ -148,9 +149,11 @@ int main(){
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-	trainNetwork(network, 1000);
+	network.receiveWeightsInFile();
+	//trainNetwork(network, 5000);
 	testNetwork(network, 10);
 
+	//network.saveWeightsInFile();
 	system("pause");
 	return 0;
 }
