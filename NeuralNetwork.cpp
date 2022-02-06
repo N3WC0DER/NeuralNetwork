@@ -15,8 +15,11 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
 	this->weightsInputHidden.resize(this->hiddenNodes, this->inputNodes);
 	this->weightsHiddenOutput.resize(this->outputNodes, this->hiddenNodes);
 
-	this->weightsInputHidden.random(-0.3, 0.3);
-	this->weightsHiddenOutput.random(-0.3, 0.3);
+	this->receiveWeightsInFile();
+}
+
+NeuralNetwork::~NeuralNetwork() {
+	saveWeightsInFile();
 }
 
 void NeuralNetwork::train(const Matrix<double> &inputs, const Matrix<double> &targets){
