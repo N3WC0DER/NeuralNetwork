@@ -15,7 +15,7 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
 	this->weightsInputHidden.resize(this->hiddenNodes, this->inputNodes);
 	this->weightsHiddenOutput.resize(this->outputNodes, this->hiddenNodes);
 
-	this->receiveWeightsInFile();
+	//this->receiveWeightsInFile();
 }
 
 NeuralNetwork::~NeuralNetwork() {
