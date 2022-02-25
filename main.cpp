@@ -10,6 +10,7 @@
 #include <SFML/Graphics.hpp>
 
 #define TRAIN
+#define TRAIN_0
 
 using namespace sf;
 
@@ -25,7 +26,11 @@ bool inObject(const Vector2f& mousePosition, const RectangleShape& object) {
 
 void trainNetwork(NeuralNetwork &network, const int countIteration){
 	ifstream trainDataset;
+#if defined(TRAIN)
+	trainDataset.open("train.csv", ios::in);
+#else
 	trainDataset.open("mnist_dataset/mnist_train.csv", ios::in);
+#endif
 	vector<string> lines;
 	lines.resize(countIteration);
 
@@ -176,6 +181,51 @@ Matrix<double> prepareValues(Matrix<double> &pixels) {
 	return inputs;
 }
 
+#if defined(TRAIN)
+void saveTrainData(Matrix<double>& pixels) {
+	Matrix<double> inputs = prepareValues(pixels);
+	ofstream trainData;
+	trainData.open("train.csv",ios::in);
+	if (!trainData.is_open()) {
+		exit(EXIT_FAILURE);
+	}
+
+	string line = "";
+	for (int i = 0; i < inputs.getRows(); i++) {
+		for (int j = 0; j < inputs.getCols(); j++) {
+			line += to_string(inputs(i, j));
+			line.push_back(',');
+		}
+	}
+
+#if defined(TRAIN_0)
+	trainData << "0,";
+#elif defined(TRAIN_1)
+	trainData << "1,";
+#elif defined(TRAIN_2)
+	trainData << "2,";
+#elif defined(TRAIN_3)
+	trainData << "3,";
+#elif defined(TRAIN_4)
+	trainData << "4,";
+#elif defined(TRAIN_5)
+	trainData << "5,";
+#elif defined(TRAIN_6)
+	trainData << "6,";
+#elif defined(TRAIN_7)
+	trainData << "7,";
+#elif defined(TRAIN_8)
+	trainData << "8,";
+#elif defined(TRAIN_9)
+	trainData << "9,";
+#endif
+
+	trainData << line;
+	trainData << '\n';
+	trainData.close();
+}
+#endif
+
 int main(){
 	srand(static_cast<unsigned int>(time(0)));
 	rand();
@@ -273,7 +323,7 @@ int main(){
 		}
 		window.clear(Color(221, 221, 221, 0));
 
-	//#if defined(__ANDROID__)
+	#if defined(__ANDROID__)
 		if (mousePressed) {
 			Vector2f touchPosition = window.mapPixelToCoords(Touch::getPosition(0, window));
 			if (inObject(touchPosition, field)) {
@@ -283,9 +333,15 @@ int main(){
 				circle.push_back(tempCircle);
 			}
 			if (inObject(touchPosition, buttonDetermine)) {
+			#if defined(TRAIN)
 				for (int i = 0; i < circle.size(); i++) {
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
-	}
+				}
+				saveTrainData(pixels)
+			#else
+				for (int i = 0; i < circle.size(); i++) {
+					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+				}
 				Matrix<double> preparedPixels = prepareValues(pixels);
 				Matrix<double> outputs = network.query(preparedPixels);
 				int maxIndex = 0;
@@ -299,6 +355,7 @@ int main(){
 				out << maxIndex;
 				textDetermine.setString(out.str());
 				mousePressed = false;
+			#endif
 			}
 			if (inObject(touchPosition, buttonClear)) {
 				circle.clear();
@@ -306,7 +363,7 @@ int main(){
 				mousePressed = false;
 			}
 		}
-	//#else
+	#else
 		if (mousePressed) {
 			Vector2f mousePosition = window.mapPixelToCoords(Mouse::getPosition(window));
 			if (inObject(mousePosition, field)) {
@@ -316,6 +373,30 @@ int main(){
 				circle.push_back(tempCircle);
 			}
 			if (inObject(mousePosition, buttonDetermine)) {
+			#if defined(TRAIN)
+				for (int i = 0; i < circle.size(); i++) {
+					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+				}
+				saveTrainData(pixels);
+				ifstream trainData;
+				trainData.open("train.csv");
+				if (!trainData.is_open()) {
+					exit(EXIT_FAILURE);
+				}
+
+				int count = 0;
+				while (trainData.ignore(numeric_limits<streamsize>::max(), '\n')) {
+					if (!trainData.eof())
+						count++;
+				}
+
+				ostringstream out;
+				out << count;
+				textDetermine.setString(out.str());
+
+				trainData.close();
+				mousePressed = false;
+			#else
 				for (int i = 0; i < circle.size(); i++) {
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
 				}
@@ -332,14 +413,18 @@ int main(){
 				out << maxIndex;
 				textDetermine.setString(out.str());
 				mousePressed = false;
+			#endif
 			}
 			if (inObject(mousePosition, buttonClear)) {
 				circle.clear();
+				#if defined(TRAIN)
+				#elif
 				textDetermine.setString(string());
+				#endif
 				mousePressed = false;
 			}
 		}
-	//#endif
+	#endif
 
 		window.draw(field);
 		window.draw(buttonDetermine);
