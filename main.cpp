@@ -185,7 +185,7 @@ Matrix<double> prepareValues(Matrix<double> &pixels) {
 void saveTrainData(Matrix<double>& pixels) {
 	Matrix<double> inputs = prepareValues(pixels);
 	ofstream trainData;
-	trainData.open("train.csv",ios::in);
+	trainData.open("train.csv",ios::app);
 	if (!trainData.is_open()) {
 		exit(EXIT_FAILURE);
 	}
@@ -262,7 +262,7 @@ int main(){
 
 	Font fontTextButton;
 #if defined(__ANDROID__)
-	if (!fontTextButton.loadFromFile("arial.ttf")) {
+	if (!fontTextButton.loadFromFile("arialmt.ttf")) {
 		return EXIT_FAILURE;
 	}
 #else
@@ -305,8 +305,12 @@ int main(){
 				window.close();
 				break;
 		#if defined(__ANDROID__)
-			case Event::TouchEvent:
+			case Event::TouchBegan:
 				mousePressed = true;
+				break;
+			case Event::TouchEnded:
+				mousePressed = false;
+				break;
 		#else
 			case Event::MouseButtonPressed:
 				if (event.mouseButton.button == Mouse::Left) {
@@ -337,7 +341,8 @@ int main(){
 				for (int i = 0; i < circle.size(); i++) {
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
 				}
-				saveTrainData(pixels)
+				saveTrainData(pixels);
+				mousePressed = false;
 			#else
 				for (int i = 0; i < circle.size(); i++) {
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
@@ -438,5 +443,6 @@ int main(){
 		window.draw(textDetermine);
 		window.display();
 	}
+	system("pause");
 	return 0;
 }
