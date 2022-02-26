@@ -1,8 +1,10 @@
 #include <fstream>
 #include <string>
+
 #include "lib/Matrix.h"
-#include "NeuralNetwork.h"
 #include "lib/sigmoida.h"
+#include "lib/random.h"
+#include "NeuralNetwork.h"
 
 using namespace std;
 
@@ -15,11 +17,162 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
 	this->weightsInputHidden.resize(this->hiddenNodes, this->inputNodes);
 	this->weightsHiddenOutput.resize(this->outputNodes, this->hiddenNodes);
 
-	//this->receiveWeightsInFile();
+	this->receiveWeightsInFile();
 }
 
 NeuralNetwork::~NeuralNetwork() {
 	saveWeightsInFile();
+}
+
+void NeuralNetwork::trainNetwork(const int countIteration){
+	ifstream trainDataset;
+	trainDataset.open("mnist_dataset/mnist_train.csv", ios::in);
+	vector<string> lines;
+	lines.resize(countIteration);
+
+	string tempLine;
+
+	trainDataset >> tempLine;
+
+	vector<double> pixels;
+	int index = 0;
+	Matrix<double> targets(this->getOutputNodes(), 1);
+	Matrix<double> inputs(this->getInputNodes(), 1);
+	for (int i = 0; i < countIteration; i++) {
+
+		string line = "";
+		getline(trainDataset, line, ',');
+		index = stoi(line);
+
+		line = "";
+		for (int j = 0; j < this->getInputNodes(); j++) {
+			getline(trainDataset, line, ',');
+			pixels.push_back(stoi(line));
+		}
+
+		Matrix<int> temp(28, 28);
+
+		for (int i = 0; i < temp.getRows(); i++) {
+			for (int j = 0; j < temp.getCols(); j++) {
+				temp(i, j) = pixels.at(i * 28 + j);
+			}
+		}
+
+		for (int j = 0; j < pixels.size(); j++) {
+			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
+		}
+
+		for (int j = 0; j < this->getOutputNodes(); j++) {
+			targets(j, 0) = 0.01;
+			if (j == index) targets(j, 0) = 0.99;
+		}
+
+		for (int j = 0; j < this->getInputNodes(); j++) {
+			inputs(j, 0) = pixels[j];
+		}
+
+		this->train(inputs, targets);
+		pixels.clear();
+	}
+
+	cout << "Train completed!" << endl;
+
+	trainDataset.close();
+}
+
+void NeuralNetwork::testNetwork(const int countIteration) {
+	ifstream testDataset;
+	testDataset.open("mnist_dataset/mnist_test.csv", ios::in);
+
+	vector<string> lines;
+	lines.resize(countIteration);
+
+	string tempLine;
+
+	testDataset >> tempLine;
+
+	vector<double> pixels;
+	int result = 0;
+	int index = 0;
+	Matrix<double> targets(this->getOutputNodes(), 1);
+	Matrix<double> inputs(this->getInputNodes(), 1);
+	for (int i = 0; i < countIteration; i++) {
+
+		string line = "";
+		getline(testDataset, line, ',');
+		index = stoi(line);
+
+		line = "";
+		for (int j = 0; j < this->getInputNodes(); j++) {
+			getline(testDataset, line, ',');
+			pixels.push_back(stoi(line));
+		}
+
+		cout << pixels.size() << endl;
+
+		Matrix<int> temp(28, 28);
+
+		for (int i = 0; i < temp.getRows(); i++) {
+			for (int j = 0; j < temp.getCols(); j++) {
+				temp(i, j) = pixels.at(i * 28 + j);
+			}
+		}
+
+		for (int j = 0; j < pixels.size(); j++) {
+			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
+		}
+
+		for (int j = 0; j < this->getOutputNodes(); j++) {
+			targets(0, j) = 0.01;
+			if (j == index) targets(0, j) = 0.99;
+		}
+
+		for (int j = 0; j < this->getInputNodes(); j++) {
+			inputs(0, j) = pixels[j];
+		}
+
+		Matrix<double> outputs = this->query(inputs);
+		pixels.clear();
+		cout << "------------" << i + 1 << " attempts: " << endl;
+
+		int maxIndex = 0;
+		for (int j = 0; j < this->getOutputNodes(); j++) {
+			if (outputs(maxIndex, 0) < outputs(j, 0)) maxIndex = j;
+		}
+
+		cout << "Output network: " << maxIndex << endl;
+		cout << "Target output: " << index << endl;
+		cout << outputs(maxIndex, 0) << endl;
+		if (maxIndex == index) result++;
+	}
+
+	cout << "Result: " << endl;
+	cout << (double)result / (double)countIteration * 100 << "% (" << result << "/" << countIteration << ")" << endl;
+	testDataset.close();
+}
+
+Matrix<double> NeuralNetwork::prepareValues(Matrix<double> &pixels) const{
+	for (int i = 1; i < pixels.getRows() - 1; i++) {
+		for (int j = 1; j < pixels.getCols() - 1; j++) {
+			if (pixels(i, j) == 0 && pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252) {
+				pixels(i, j) = getRandomNumber(132, 178);
+			}
+		}
+	}
+	cout << pixels << endl;
+
+	for (int i = 0; i < pixels.getRows(); i++) {
+		for (int j = 0; j < pixels.getCols(); j++) {
+			pixels(i, j) = (pixels(i, j) / 255 * 0.99) + 0.01;
+		}
+	}
+
+	Matrix<double> inputs(1, pixels.getSize());
+	for (int i = 0; i < pixels.getSize(); i++) {
+		inputs(0, i) = pixels(i % 28, i / 28);
+	}
+	pixels();
+	return inputs;
 }
 
 void NeuralNetwork::train(const Matrix<double> &inputs, const Matrix<double> &targets){
@@ -61,7 +214,7 @@ int NeuralNetwork::getOutputNodes() const{
 
 void NeuralNetwork::saveWeightsInFile() const{
 	ofstream weights;
-	weights.open("weights.csv");
+	weights.open("weights.csv", ios::app);
 	if (!weights.is_open()) {
 		exit(EXIT_FAILURE);
 	}
@@ -92,7 +245,7 @@ void NeuralNetwork::saveWeightsInFile() const{
 
 void NeuralNetwork::receiveWeightsInFile() {
 	ifstream weights;
-	weights.open("weights.csv");
+	weights.open("weights.csv", ios::in);
 	if (!weights.is_open()) {
 		exit(EXIT_FAILURE);
 	}
