@@ -17,6 +17,9 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
 	this->weightsInputHidden.resize(this->hiddenNodes, this->inputNodes);
 	this->weightsHiddenOutput.resize(this->outputNodes, this->hiddenNodes);
 
+	this->weightsInputHidden.random(-0.5, 0.5);
+	this->weightsHiddenOutput.random(-0.5, 0.5);
+
 	this->receiveWeightsInFile();
 }
 
@@ -46,6 +49,11 @@ void NeuralNetwork::trainNetwork(const int countIteration){
 
 		line = "";
 		for (int j = 0; j < this->getInputNodes(); j++) {
+			if (j == this->getInputNodes() - 1) {
+				getline(trainDataset, line, '\n');
+				pixels.push_back(stoi(line));
+				break;
+			}
 			getline(trainDataset, line, ',');
 			pixels.push_back(stoi(line));
 		}
@@ -59,7 +67,7 @@ void NeuralNetwork::trainNetwork(const int countIteration){
 		}
 
 		for (int j = 0; j < pixels.size(); j++) {
-			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
+			pixels[j] = (pixels[j] / 256 * 0.99) + 0.01;
 		}
 
 		for (int j = 0; j < this->getOutputNodes(); j++) {
@@ -94,7 +102,6 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 	vector<double> pixels;
 	int result = 0;
 	int index = 0;
-	Matrix<double> targets(this->getOutputNodes(), 1);
 	Matrix<double> inputs(this->getInputNodes(), 1);
 	for (int i = 0; i < countIteration; i++) {
 
@@ -104,11 +111,14 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 
 		line = "";
 		for (int j = 0; j < this->getInputNodes(); j++) {
+			if (j == this->getInputNodes()-1) {
+				getline(testDataset, line, '\n');
+				pixels.push_back(stoi(line));
+				continue;
+			}
 			getline(testDataset, line, ',');
 			pixels.push_back(stoi(line));
 		}
-
-		cout << pixels.size() << endl;
 
 		Matrix<int> temp(28, 28);
 
@@ -119,17 +129,12 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 		}
 
 		for (int j = 0; j < pixels.size(); j++) {
-			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
-		}
-
-		for (int j = 0; j < this->getOutputNodes(); j++) {
-			targets(0, j) = 0.01;
-			if (j == index) targets(0, j) = 0.99;
+			pixels[j] = (pixels[j] / 256 * 0.99) + 0.01;
 		}
 
 		for (int j = 0; j < this->getInputNodes(); j++) {
-			inputs(0, j) = pixels[j];
-		}
+			inputs(j, 0) = pixels[j];
+		};
 
 		Matrix<double> outputs = this->query(inputs);
 		pixels.clear();
@@ -167,9 +172,9 @@ Matrix<double> NeuralNetwork::prepareValues(Matrix<double> &pixels) const{
 		}
 	}
 
-	Matrix<double> inputs(1, pixels.getSize());
+	Matrix<double> inputs(pixels.getSize(), 1);
 	for (int i = 0; i < pixels.getSize(); i++) {
-		inputs(0, i) = pixels(i % 28, i / 28);
+		inputs(i, 0) = pixels(i % 28, i / 28);
 	}
 	pixels();
 	return inputs;
@@ -191,7 +196,7 @@ void NeuralNetwork::train(const Matrix<double> &inputs, const Matrix<double> &ta
 }
 
 Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs){
-	Matrix<double> hiddenInputs = this->weightsInputHidden * inputs.transposition();
+	Matrix<double> hiddenInputs = this->weightsInputHidden * inputs;
 	Matrix<double> hiddenOutputs = sigmoida(hiddenInputs);
 
 	Matrix<double> finalInputs = this->weightsHiddenOutput * hiddenOutputs;

@@ -75,12 +75,12 @@ int main(){
 	const int inputNodes = 784,
 			  hiddenNodes = 100,
 			  outputNodes = 10;
-	double learningRate = 0.5;
+	double learningRate = 0.3;
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-	network.trainNetwork(1000);
-	network.testNetwork(10);
+	//network.trainNetwork(10000);
+	//network.testNetwork(10);
 
 	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
 
@@ -215,11 +215,11 @@ int main(){
 				for (int i = 0; i < network.getOutputNodes(); i++) {
 					if (outputs(maxIndex, 0) < outputs(i, 0)) maxIndex = i;
 				}
-				cout << "Output network: " << maxIndex << endl;
-				cout << outputs(maxIndex, 0) << endl;
 
 				ostringstream out;
+				out << "Output network: ";
 				out << maxIndex;
+				out << " " << outputs(maxIndex, 0);
 				textDetermine.setString(out.str());
 				mousePressed = false;
 			#endif
