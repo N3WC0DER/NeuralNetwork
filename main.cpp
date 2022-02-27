@@ -9,8 +9,8 @@
 #include "lib/random.h"
 #include <SFML/Graphics.hpp>
 
-#define TRAIN
-#define TRAIN_0
+#define TRAI
+#define TRAIN_6
 
 using namespace sf;
 
@@ -25,8 +25,8 @@ bool inObject(const Vector2f &mousePosition, const RectangleShape &object) {
 }
 
 #if defined(TRAIN)
-void saveTrainData(Matrix<double> &pixels, const NeuralNetwork &network) {
-	Matrix<double> inputs = network.prepareValues(pixels);
+void saveTrainData(Matrix<int> &pixels, const NeuralNetwork &network) {
+	Matrix<int> inputs = network.prepareValues(pixels);
 	ofstream trainData;
 	trainData.open("train.csv",ios::app);
 	if (!trainData.is_open()) {
@@ -75,19 +75,22 @@ int main(){
 	const int inputNodes = 784,
 			  hiddenNodes = 100,
 			  outputNodes = 10;
-	double learningRate = 0.5;
+	double learningRate = 0.3;
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
-
-	network.trainNetwork(1000);
-	network.testNetwork(10);
+#ifndef TRAIN
+	network.trainNetwork(19);
+#endif
 
 	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
 
 	bool mousePressed = false;
 	vector<CircleShape> circle;
+#ifdef TRAIN
+	Matrix<int> pixels(28, 28);
+#else
 	Matrix<double> pixels(28, 28);
-
+#endif
 	RectangleShape field(Vector2f(392.f, 392.f));
 	field.move(14, 14);
 	field.setFillColor(Color(255, 255, 255));
@@ -186,7 +189,6 @@ int main(){
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
 				}
 				saveTrainData(pixels, network);
-
 				ifstream trainData;
 				trainData.open("train.csv", ios::in);
 				if (!trainData.is_open()) {
@@ -209,6 +211,7 @@ int main(){
 				for (int i = 0; i < circle.size(); i++) {
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
 				}
+
 				Matrix<double> preparedPixels = network.prepareValues(pixels);
 				Matrix<double> outputs = network.query(preparedPixels);
 				int maxIndex = 0;
@@ -267,6 +270,7 @@ int main(){
 				for (int i = 0; i < circle.size(); i++) {
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
 				}
+
 				Matrix<double> preparedPixels = network.prepareValues(pixels);
 				Matrix<double> outputs = network.query(preparedPixels);
 				int maxIndex = 0;

@@ -17,7 +17,10 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
 	this->weightsInputHidden.resize(this->hiddenNodes, this->inputNodes);
 	this->weightsHiddenOutput.resize(this->outputNodes, this->hiddenNodes);
 
-	this->receiveWeightsInFile();
+	this->weightsInputHidden.random(-0.5, 0.5);
+	this->weightsHiddenOutput.random(-0.5, 0.5);
+
+	//this->receiveWeightsInFile();
 }
 
 NeuralNetwork::~NeuralNetwork() {
@@ -26,7 +29,7 @@ NeuralNetwork::~NeuralNetwork() {
 
 void NeuralNetwork::trainNetwork(const int countIteration){
 	ifstream trainDataset;
-	trainDataset.open("mnist_dataset/mnist_train.csv", ios::in);
+	trainDataset.open(file, ios::in);
 	vector<string> lines;
 	lines.resize(countIteration);
 
@@ -59,7 +62,7 @@ void NeuralNetwork::trainNetwork(const int countIteration){
 		}
 
 		for (int j = 0; j < pixels.size(); j++) {
-			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
+			pixels[j] = (pixels[j] / 256 * 0.99) + 0.01;
 		}
 
 		for (int j = 0; j < this->getOutputNodes(); j++) {
@@ -94,7 +97,6 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 	vector<double> pixels;
 	int result = 0;
 	int index = 0;
-	Matrix<double> targets(this->getOutputNodes(), 1);
 	Matrix<double> inputs(this->getInputNodes(), 1);
 	for (int i = 0; i < countIteration; i++) {
 
@@ -104,11 +106,14 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 
 		line = "";
 		for (int j = 0; j < this->getInputNodes(); j++) {
+			if (j == this->getInputNodes()-1) {
+				getline(testDataset, line, '\n');
+				pixels.push_back(stoi(line));
+				continue;
+			}
 			getline(testDataset, line, ',');
 			pixels.push_back(stoi(line));
 		}
-
-		cout << pixels.size() << endl;
 
 		Matrix<int> temp(28, 28);
 
@@ -119,17 +124,12 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 		}
 
 		for (int j = 0; j < pixels.size(); j++) {
-			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
-		}
-
-		for (int j = 0; j < this->getOutputNodes(); j++) {
-			targets(0, j) = 0.01;
-			if (j == index) targets(0, j) = 0.99;
+			pixels[j] = (pixels[j] / 256 * 0.99) + 0.01;
 		}
 
 		for (int j = 0; j < this->getInputNodes(); j++) {
-			inputs(0, j) = pixels[j];
-		}
+			inputs(j, 0) = pixels[j];
+		};
 
 		Matrix<double> outputs = this->query(inputs);
 		pixels.clear();
@@ -151,7 +151,7 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 	testDataset.close();
 }
 
-Matrix<double> NeuralNetwork::prepareValues(Matrix<double> &pixels) const{
+Matrix<int> NeuralNetwork::prepareValues(Matrix<int> &pixels) const{
 	for (int i = 1; i < pixels.getRows() - 1; i++) {
 		for (int j = 1; j < pixels.getCols() - 1; j++) {
 			if (pixels(i, j) == 0 && pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252) {
@@ -163,13 +163,31 @@ Matrix<double> NeuralNetwork::prepareValues(Matrix<double> &pixels) const{
 
 	for (int i = 0; i < pixels.getRows(); i++) {
 		for (int j = 0; j < pixels.getCols(); j++) {
-			pixels(i, j) = (pixels(i, j) / 255 * 0.99) + 0.01;
+			pixels(i, j) = (pixels(i, j) / 256 * 0.99) + 0.01;
 		}
 	}
 
-	Matrix<double> inputs(1, pixels.getSize());
+	Matrix<int> inputs(pixels.getSize(), 1);
 	for (int i = 0; i < pixels.getSize(); i++) {
-		inputs(0, i) = pixels(i % 28, i / 28);
+		inputs(i, 0) = pixels(i % 28, i / 28);
+	}
+	pixels();
+	return inputs;
+}
+
+Matrix<double> NeuralNetwork::prepareValues(Matrix<double> &pixels) const {
+	for (int i = 1; i < pixels.getRows() - 1; i++) {
+		for (int j = 1; j < pixels.getCols() - 1; j++) {
+			if (pixels(i, j) == 0 && pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252) {
+				pixels(i, j) = getRandomNumber(132, 178);
+			}
+		}
+	}
+	cout << pixels << endl;
+
+	Matrix<double> inputs(pixels.getSize(), 1);
+	for (int i = 0; i < pixels.getSize(); i++) {
+		inputs(i, 0) = pixels(i % 28, i / 28);
 	}
 	pixels();
 	return inputs;
@@ -191,7 +209,7 @@ void NeuralNetwork::train(const Matrix<double> &inputs, const Matrix<double> &ta
 }
 
 Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs){
-	Matrix<double> hiddenInputs = this->weightsInputHidden * inputs.transposition();
+	Matrix<double> hiddenInputs = this->weightsInputHidden * inputs;
 	Matrix<double> hiddenOutputs = sigmoida(hiddenInputs);
 
 	Matrix<double> finalInputs = this->weightsHiddenOutput * hiddenOutputs;
@@ -214,7 +232,7 @@ int NeuralNetwork::getOutputNodes() const{
 
 void NeuralNetwork::saveWeightsInFile() const{
 	ofstream weights;
-	weights.open("weights.csv", ios::app);
+	weights.open("weights.csv", ios::out);
 	if (!weights.is_open()) {
 		exit(EXIT_FAILURE);
 	}
