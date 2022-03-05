@@ -49,6 +49,11 @@ void NeuralNetwork::trainNetwork(const int countIteration){
 
 		line = "";
 		for (int j = 0; j < this->getInputNodes(); j++) {
+			if (j == this->getInputNodes() - 1) {
+				getline(trainDataset, line, '\n');
+				pixels.push_back(stoi(line));
+				break;
+			}
 			getline(trainDataset, line, ',');
 			pixels.push_back(stoi(line));
 		}

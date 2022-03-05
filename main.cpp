@@ -218,11 +218,11 @@ int main(){
 				for (int i = 0; i < network.getOutputNodes(); i++) {
 					if (outputs(maxIndex, 0) < outputs(i, 0)) maxIndex = i;
 				}
-				cout << "Output network: " << maxIndex << endl;
-				cout << outputs(maxIndex, 0) << endl;
 
 				ostringstream out;
+				out << "Output network: ";
 				out << maxIndex;
+				out << " " << outputs(maxIndex, 0);
 				textDetermine.setString(out.str());
 				mousePressed = false;
 			#endif
