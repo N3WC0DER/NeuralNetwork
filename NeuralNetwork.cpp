@@ -49,11 +49,6 @@ void NeuralNetwork::trainNetwork(const int countIteration){
 
 		line = "";
 		for (int j = 0; j < this->getInputNodes(); j++) {
-			if (j == this->getInputNodes() - 1) {
-				getline(trainDataset, line, '\n');
-				pixels.push_back(stoi(line));
-				break;
-			}
 			getline(trainDataset, line, ',');
 			pixels.push_back(stoi(line));
 		}
@@ -62,12 +57,12 @@ void NeuralNetwork::trainNetwork(const int countIteration){
 
 		for (int i = 0; i < temp.getRows(); i++) {
 			for (int j = 0; j < temp.getCols(); j++) {
-				temp(i, j) = pixels.at(i * 28 + j);
+				temp(j, i) = pixels.at(i * 28 + j);
 			}
 		}
 
 		for (int j = 0; j < pixels.size(); j++) {
-			pixels[j] = (pixels[j] / 256 * 0.99) + 0.01;
+			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
 		}
 
 		for (int j = 0; j < this->getOutputNodes(); j++) {
@@ -159,18 +154,13 @@ void NeuralNetwork::testNetwork(const int countIteration) {
 Matrix<int> NeuralNetwork::prepareValues(Matrix<int> &pixels) const{
 	for (int i = 1; i < pixels.getRows() - 1; i++) {
 		for (int j = 1; j < pixels.getCols() - 1; j++) {
-			if (pixels(i, j) == 0 && pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252) {
+			if (pixels(i, j) == 0 && (pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252)) {
 				pixels(i, j) = getRandomNumber(132, 178);
 			}
 		}
 	}
-	cout << pixels << endl;
 
-	for (int i = 0; i < pixels.getRows(); i++) {
-		for (int j = 0; j < pixels.getCols(); j++) {
-			pixels(i, j) = (pixels(i, j) / 256 * 0.99) + 0.01;
-		}
-	}
+	cout << pixels << endl;
 
 	Matrix<int> inputs(pixels.getSize(), 1);
 	for (int i = 0; i < pixels.getSize(); i++) {
@@ -183,12 +173,18 @@ Matrix<int> NeuralNetwork::prepareValues(Matrix<int> &pixels) const{
 Matrix<double> NeuralNetwork::prepareValues(Matrix<double> &pixels) const {
 	for (int i = 1; i < pixels.getRows() - 1; i++) {
 		for (int j = 1; j < pixels.getCols() - 1; j++) {
-			if (pixels(i, j) == 0 && pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252) {
+			if (pixels(i, j) == 0 && (pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252)) {
 				pixels(i, j) = getRandomNumber(132, 178);
 			}
 		}
 	}
 	cout << pixels << endl;
+
+	for (int i = 0; i < pixels.getRows(); i++) {
+		for (int j = 0; j < pixels.getCols(); j++) {
+			pixels(i, j) = (pixels(i, j) / 255 * 0.99) + 0.01;
+		}
+	}
 
 	Matrix<double> inputs(pixels.getSize(), 1);
 	for (int i = 0; i < pixels.getSize(); i++) {

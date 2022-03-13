@@ -10,7 +10,7 @@
 #include <SFML/Graphics.hpp>
 
 #define TRAI
-#define TRAIN_6
+#define TRAIN_9
 
 using namespace sf;
 
@@ -75,11 +75,11 @@ int main(){
 	const int inputNodes = 784,
 			  hiddenNodes = 100,
 			  outputNodes = 10;
-	double learningRate = 0.3;
+	double learningRate = 0.5;
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 #ifndef TRAIN
-	network.trainNetwork(19);
+	network.trainNetwork(100);
 #endif
 
 	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
@@ -278,7 +278,7 @@ int main(){
 					if (outputs(maxIndex, 0) < outputs(i, 0)) maxIndex = i;
 				}
 				cout << "Output network: " << maxIndex << endl;
-				cout << outputs(maxIndex, 0) << endl;
+				cout << outputs << endl;
 
 				ostringstream out;
 				out << maxIndex;
