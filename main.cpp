@@ -1,16 +1,13 @@
 #include <iostream>
 #include <ctime>
-#include <cmath>
-#include <fstream>
-#include <cstring>
-#include <string>
 
 #include "lib/Matrix.h"
 #include "NeuralNetwork.h"
 #include "lib/sigmoida.h"
+#include <SFML/Graphics.hpp>
 
-using namespace std;
-
+using namespace sf;
+/*
 void trainNetwork(NeuralNetwork &network, const int countIteration){
 	ifstream trainDataset;
 	trainDataset.open("mnist_dataset/mnist_train.csv", ios::in);
@@ -137,6 +134,21 @@ void testNetwork(NeuralNetwork &network, const int countIteration){
 	cout << (double) result / (double) countIteration * 100 << "% (" << result << "/" << countIteration << ")" << endl;
 	testDataset.close();
 }
+*/
+
+bool inObject(const Vector2f& mousePosition, const RectangleShape& object) {
+	if (mousePosition.x > object.getPosition().x &&
+		mousePosition.y > object.getPosition().y &&
+		mousePosition.x < object.getPosition().x + object.getSize().x &&
+		mousePosition.y < object.getPosition().y + object.getSize().y) {
+		return true;
+	}
+	else return false;
+}
+
+void prepareValues(Matrix<int>& pixels) {
+
+}
 
 int main(){
 	srand(static_cast<unsigned int>(time(0)));
@@ -149,11 +161,144 @@ int main(){
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-	network.receiveWeightsInFile();
-	//trainNetwork(network, 5000);
-	testNetwork(network, 10);
+	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
 
-	//network.saveWeightsInFile();
+	bool mousePressed = false;
+	vector<CircleShape> circle;
+
+	RectangleShape field(Vector2f(392.f, 392.f));
+	field.move(14, 14);
+	field.setFillColor(Color(255, 255, 255));
+
+	RectangleShape buttonDetermine(Vector2f(392.f, 50.f));
+	buttonDetermine.move(10, 430);
+	buttonDetermine.setFillColor(Color(255, 255, 255));
+	buttonDetermine.setOutlineThickness(1.f);
+	buttonDetermine.setOutlineColor(Color(0, 0, 0));
+
+	RectangleShape buttonClear(Vector2f(392.f, 50.f));
+	buttonClear.move(10, 490);
+	buttonClear.setFillColor(Color(255, 255, 255));
+	buttonClear.setOutlineThickness(1.f);
+	buttonClear.setOutlineColor(Color(0, 0, 0));
+
+	Font fontTextButton;
+#if defined(__ANDROID__)
+	if (!fontTextButton.loadFromFile("arialmt.ttf")) {
+		return EXIT_FAILURE;
+	}
+#else
+	if (!fontTextButton.loadFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
+		return EXIT_FAILURE;
+	}
+#endif
+
+	Text textButtonDetermine;
+	textButtonDetermine.setFont(fontTextButton);
+	textButtonDetermine.move(136, 435);
+	textButtonDetermine.setString("Determine");
+	textButtonDetermine.setCharacterSize(30);
+	textButtonDetermine.setFillColor(Color(0, 0, 0));
+
+	Text textButtonClear;
+	textButtonClear.setFont(fontTextButton);
+	textButtonClear.move(166, 495);
+	textButtonClear.setString("Clear");
+	textButtonClear.setCharacterSize(30);
+	textButtonClear.setFillColor(Color(0, 0, 0));
+
+	RectangleShape fieldOut(Vector2f(392.f, 200.f));
+	fieldOut.move(10, 550);
+	fieldOut.setFillColor(Color(255, 255, 255));
+	fieldOut.setOutlineThickness(1.f);
+	fieldOut.setOutlineColor(Color(0, 0, 0));
+
+	Text textDetermine;
+	textDetermine.setFont(fontTextButton);
+	textDetermine.move(20, 560);
+	textDetermine.setCharacterSize(30);
+	textDetermine.setFillColor(Color(0, 0, 0));
+
+	while (window.isOpen()) {
+		Event event;
+		while (window.pollEvent(event)) {
+			switch (event.type) {
+			case Event::Closed:
+				window.close();
+				break;
+#if defined(__ANDROID__)
+			case Event::TouchBegan:
+				mousePressed = true;
+				break;
+			case Event::TouchEnded:
+				mousePressed = false;
+				break;
+#else
+			case Event::MouseButtonPressed:
+				if (event.mouseButton.button == Mouse::Left) {
+					mousePressed = true;
+				}
+				break;
+			case Event::MouseButtonReleased:
+				if (event.mouseButton.button == Mouse::Left) {
+					mousePressed = false;
+				}
+				break;
+#endif
+			}
+		}
+		window.clear(Color(221, 221, 221, 0));
+
+#if defined(__ANDROID__)
+		if (mousePressed) {
+			Vector2f touchPosition = window.mapPixelToCoords(Touch::getPosition(0, window));
+			if (inObject(touchPosition, field)) {
+				CircleShape tempCircle(5.f);
+				tempCircle.move(touchPosition.x, touchPosition.y);
+				tempCircle.setFillColor(Color(0, 0, 0));
+				circle.push_back(tempCircle);
+			}
+			if (inObject(touchPosition, buttonDetermine)) {
+
+			}
+			if (inObject(touchPosition, buttonClear)) {
+				circle.clear();
+				textDetermine.setString(string());
+				mousePressed = false;
+			}
+		}
+#else
+		if (mousePressed) {
+			Vector2f mousePosition = window.mapPixelToCoords(Mouse::getPosition(window));
+			if (inObject(mousePosition, field)) {
+				CircleShape tempCircle(5.f);
+				tempCircle.move(mousePosition.x, mousePosition.y);
+				tempCircle.setFillColor(Color(0, 0, 0));
+				circle.push_back(tempCircle);
+			}
+			if (inObject(mousePosition, buttonDetermine)) {
+				
+			}
+			if (inObject(mousePosition, buttonClear)) {
+				circle.clear();
+				textDetermine.setString(string());
+				mousePressed = false;
+			}
+		}
+#endif
+
+		window.draw(field);
+		window.draw(buttonDetermine);
+		window.draw(textButtonDetermine);
+		window.draw(buttonClear);
+		window.draw(textButtonClear);
+		window.draw(fieldOut);
+		for (int i = 0; i < circle.size(); i++) {
+			window.draw(circle.at(i));
+		}
+		window.draw(textDetermine);
+		window.display();
+	}
 	system("pause");
 	return 0;
 }
