@@ -1,9 +1,10 @@
 #include <iostream>
 #include <ctime>
-
 #include "lib/Matrix.h"
+
 #include "NeuralNetwork.h"
 #include "lib/sigmoida.h"
+#include "lib/random.h"
 #include <SFML/Graphics.hpp>
 
 using namespace sf;
@@ -146,8 +147,27 @@ bool inObject(const Vector2f& mousePosition, const RectangleShape& object) {
 	else return false;
 }
 
-void prepareValues(Matrix<int>& pixels) {
+Matrix<double> prepareValues(Matrix<double>& pixels) {
+	for (int i = 1; i < pixels.getRows() - 1; i++) {
+		for (int j = 1; j < pixels.getCols() - 1; j++) {
+			if (pixels(i, j) == 0 && (pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252)) {
+				pixels(i, j) = getRandomNumber(132, 178);
+			}
+		}
+	}
 
+	//cout << pixels << endl;
+
+	Matrix<double> inputs(pixels.getSize(), 1);
+	for (int i = 0; i < pixels.getSize(); i++) {
+		inputs(i, 0) = pixels(i / 28, i % 28);
+	}
+	pixels();
+
+	for (int i = 0; i < inputs.getSize(); i++) {
+		inputs(i, 0) = (inputs(i, 0) / 255 * 0.99) + 0.01;
+	}
+	return inputs;
 }
 
 int main(){
@@ -160,6 +180,8 @@ int main(){
 	double learningRate = 0.5;
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
+
+	//network.trainNetwork(10);
 
 	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
 
@@ -277,7 +299,25 @@ int main(){
 				circle.push_back(tempCircle);
 			}
 			if (inObject(mousePosition, buttonDetermine)) {
+				// Переводим координаты точек на поле (рисунка) в матрицу
+				Matrix<double> pixels(28, 28);
+				for (int i = 0; i < circle.size(); i++) {
+					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+				}
+
+				// Переводим в понятный для нейронки формат
+				Matrix<double> preparedPixels = prepareValues(pixels);
+
+				// Опрос сети
+				Matrix<double> result = network.query(preparedPixels);
+				int maxIndex = 0;
+				for (int i = 0; i < result.getSize(); i++) {
+					if (result(maxIndex, 0) < result(i, 0)) maxIndex = i;
+				}
+
+				cout << maxIndex << endl;
 				
+				mousePressed = false;
 			}
 			if (inObject(mousePosition, buttonClear)) {
 				circle.clear();
@@ -299,6 +339,5 @@ int main(){
 		window.draw(textDetermine);
 		window.display();
 	}
-	system("pause");
 	return 0;
 }
