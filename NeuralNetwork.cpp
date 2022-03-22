@@ -41,7 +41,7 @@ void NeuralNetwork::train(const Matrix<double> &inputs, const Matrix<double> &ta
 }
 
 Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs) {
-	Matrix<double> hiddenInputs = this->weightsInputHidden * inputs.transposition();
+	Matrix<double> hiddenInputs = this->weightsInputHidden * inputs;
 	Matrix<double> hiddenOutputs = sigmoida(hiddenInputs);
 
 	Matrix<double> finalInputs = this->weightsHiddenOutput * hiddenOutputs;
@@ -109,6 +109,7 @@ void NeuralNetwork::trainNetwork(const int countIteration) {
 	cout << "Train completed!" << endl;
 
 	trainDataset.close();
+	this->saveWeightsInFile();
 }
 
 void NeuralNetwork::testNetwork(const int countIteration) {
