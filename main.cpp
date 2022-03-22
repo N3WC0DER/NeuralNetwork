@@ -181,8 +181,6 @@ int main(){
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-	//network.trainNetwork(10);
-
 	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
 
 	bool mousePressed = false;
