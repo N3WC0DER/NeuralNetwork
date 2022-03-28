@@ -137,11 +137,11 @@ void testNetwork(NeuralNetwork &network, const int countIteration){
 }
 */
 
-bool inObject(const Vector2f& mousePosition, const RectangleShape& object) {
-	if (mousePosition.x > object.getPosition().x &&
-		mousePosition.y > object.getPosition().y &&
-		mousePosition.x < object.getPosition().x + object.getSize().x &&
-		mousePosition.y < object.getPosition().y + object.getSize().y) {
+bool inObject(const Vector2f& mousePosition, const RectangleShape* object) {
+	if (mousePosition.x > object->getPosition().x &&
+		mousePosition.y > object->getPosition().y &&
+		mousePosition.x < object->getPosition().x + object->getSize().x &&
+		mousePosition.y < object->getPosition().y + object->getSize().y) {
 		return true;
 	}
 	else return false;
@@ -170,6 +170,97 @@ Matrix<double> prepareValues(Matrix<double>& pixels) {
 	return inputs;
 }
 
+enum Objects{
+	FIELD,
+	BUTTON_DETERMINE,
+	BUTTON_CLEAR,
+	TEXT_BUTTON_DETERMINE,
+	TEXT_BUTTON_CLEAR,
+	FIELD_OUT,
+	TEXT_DETERMINE
+};
+
+Font* fontTextButton;
+
+vector<Drawable*> initObjects(){
+	//map<string, Drawable*>* objects = new map<string, Drawable*>;
+  
+	RectangleShape* field = new RectangleShape(Vector2f(392.f, 392.f));
+	field->move(14, 14);
+	field->setFillColor(Color(255, 255, 255));
+  
+	RectangleShape* buttonDetermine = new RectangleShape(Vector2f(392.f, 50.f));
+	buttonDetermine->move(10, 430);
+	buttonDetermine->setFillColor(Color(255, 255, 255));
+	buttonDetermine->setOutlineThickness(1.f);
+	buttonDetermine->setOutlineColor(Color(0, 0, 0));
+  
+	RectangleShape* buttonClear = new RectangleShape(Vector2f(392.f, 50.f));
+	buttonClear->move(10, 490);
+	buttonClear->setFillColor(Color(255, 255, 255));
+	buttonClear->setOutlineThickness(1.f);
+	buttonClear->setOutlineColor(Color(0, 0, 0));
+  
+	fontTextButton = new Font;
+#if defined(__ANDROID__)
+	if (!fontTextButton->loadFromFile("arialmt.ttf")) {
+		exit(EXIT_FAILURE);
+	}
+#else
+	if (!fontTextButtong->loadFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
+		exit(EXIT_FAILURE);
+	}
+#endif
+  
+	Text* textButtonDetermine = new Text;
+	textButtonDetermine->setFont(*fontTextButton);
+	textButtonDetermine->move(136, 435);
+	textButtonDetermine->setString("Determine");
+	textButtonDetermine->setCharacterSize(30);
+	textButtonDetermine->setFillColor(Color(0, 0, 0));
+  
+	Text* textButtonClear = new Text;
+	textButtonClear->setFont(*fontTextButton);
+	textButtonClear->move(166, 495);
+	textButtonClear->setString("Clear");
+	textButtonClear->setCharacterSize(30);
+	textButtonClear->setFillColor(Color(0, 0, 0));
+  
+	RectangleShape* fieldOut = new RectangleShape(Vector2f(392.f, 200.f));
+	fieldOut->move(10, 550);
+	fieldOut->setFillColor(Color(255, 255, 255));
+	fieldOut->setOutlineThickness(1.f);
+	fieldOut->setOutlineColor(Color(0, 0, 0));
+  
+	Text* textDetermine = new Text;
+	textDetermine->setFont(*fontTextButton);
+	textDetermine->move(20, 560);
+	textDetermine->setCharacterSize(30);
+	textDetermine->setFillColor(Color(0, 0, 0));
+  
+	/*map<string, Drawable*>* objects = new map<string, Drawable*>{
+		{"field", field}, 
+		{"buttonDetermine", buttonDetermine}, 
+		{"buttonClear", buttonClear}, 
+		{"textButtonDetermine", textButtonDetermine}, 
+		{"textButtonClear", textButtonClear}, 
+		{"fieldOut", fieldOut}, 
+		{"textDetermine", textDetermine}
+	};*/
+	
+	vector<Drawable*> objects;
+	
+	objects.push_back(field);
+	objects.push_back(buttonDetermine);
+	objects.push_back(buttonClear);
+	objects.push_back(textButtonDetermine);
+	objects.push_back(textButtonClear);
+	objects.push_back(fieldOut);
+	objects.push_back(textDetermine);
+	
+	return objects;
+}
+
 int main(){
 	srand(static_cast<unsigned int>(time(0)));
 	rand();
@@ -185,65 +276,17 @@ int main(){
 
 	bool mousePressed = false;
 	vector<CircleShape> circle;
-
-	RectangleShape field(Vector2f(392.f, 392.f));
-	field.move(14, 14);
-	field.setFillColor(Color(255, 255, 255));
-
-	RectangleShape buttonDetermine(Vector2f(392.f, 50.f));
-	buttonDetermine.move(10, 430);
-	buttonDetermine.setFillColor(Color(255, 255, 255));
-	buttonDetermine.setOutlineThickness(1.f);
-	buttonDetermine.setOutlineColor(Color(0, 0, 0));
-
-	RectangleShape buttonClear(Vector2f(392.f, 50.f));
-	buttonClear.move(10, 490);
-	buttonClear.setFillColor(Color(255, 255, 255));
-	buttonClear.setOutlineThickness(1.f);
-	buttonClear.setOutlineColor(Color(0, 0, 0));
-
-	Font fontTextButton;
-#if defined(__ANDROID__)
-	if (!fontTextButton.loadFromFile("arialmt.ttf")) {
-		return EXIT_FAILURE;
-	}
-#else
-	if (!fontTextButton.loadFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
-		return EXIT_FAILURE;
-	}
-#endif
-
-	Text textButtonDetermine;
-	textButtonDetermine.setFont(fontTextButton);
-	textButtonDetermine.move(136, 435);
-	textButtonDetermine.setString("Determine");
-	textButtonDetermine.setCharacterSize(30);
-	textButtonDetermine.setFillColor(Color(0, 0, 0));
-
-	Text textButtonClear;
-	textButtonClear.setFont(fontTextButton);
-	textButtonClear.move(166, 495);
-	textButtonClear.setString("Clear");
-	textButtonClear.setCharacterSize(30);
-	textButtonClear.setFillColor(Color(0, 0, 0));
-
-	RectangleShape fieldOut(Vector2f(392.f, 200.f));
-	fieldOut.move(10, 550);
-	fieldOut.setFillColor(Color(255, 255, 255));
-	fieldOut.setOutlineThickness(1.f);
-	fieldOut.setOutlineColor(Color(0, 0, 0));
-
-	Text textDetermine;
-	textDetermine.setFont(fontTextButton);
-	textDetermine.move(20, 560);
-	textDetermine.setCharacterSize(30);
-	textDetermine.setFillColor(Color(0, 0, 0));
-
+	vector<Drawable*> objects = initObjects();
+	
 	while (window.isOpen()) {
 		Event event;
 		while (window.pollEvent(event)) {
 			switch (event.type) {
 			case Event::Closed:
+				for (auto it = objects.begin(); it != objects.end(); it++) {
+					delete *it;
+				}
+				delete fontTextButton;
 				window.close();
 				break;
 #if defined(__ANDROID__)
@@ -269,26 +312,29 @@ int main(){
 		}
 		window.clear(Color(221, 221, 221, 0));
 
-#if defined(__ANDROID__)
 		if (mousePressed) {
+		#ifdef __ANDROID__
 			Vector2f touchPosition = window.mapPixelToCoords(Touch::getPosition(0, window));
-			if (inObject(touchPosition, field)) {
+		#else
+			Vector2f touchPosition = window.mapPixelToCoords(Mouse::getPosition());
+		#endif
+			if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(FIELD)))) {
 				CircleShape tempCircle(5.f);
 				tempCircle.move(touchPosition.x, touchPosition.y);
 				tempCircle.setFillColor(Color(0, 0, 0));
 				circle.push_back(tempCircle);
 			}
-			if (inObject(touchPosition, buttonDetermine)) {
-				// Переводим координаты точек на поле (рисунка) в матрицу
+			if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_DETERMINE)))) {
+				// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ) пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 				Matrix<double> pixels(28, 28);
 				for (int i = 0; i < circle.size(); i++) {
 					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
 				}
 
-				// Переводим в понятный для нейронки формат
+				// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 				Matrix<double> preparedPixels = prepareValues(pixels);
 
-				// Опрос сети
+				// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 				Matrix<double> result = network.query(preparedPixels);
 				int maxIndex = 0;
 				for (int i = 0; i < result.getSize(); i++) {
@@ -299,61 +345,25 @@ int main(){
 
 				mousePressed = false;
 			}
-			if (inObject(touchPosition, buttonClear)) {
+			if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_CLEAR)))) {
 				circle.clear();
-				textDetermine.setString(string());
+				static_cast<Text*>(objects.at(TEXT_DETERMINE))->setString(string());
 				mousePressed = false;
 			}
 		}
-#else
-		if (mousePressed) {
-			Vector2f mousePosition = window.mapPixelToCoords(Mouse::getPosition(window));
-			if (inObject(mousePosition, field)) {
-				CircleShape tempCircle(5.f);
-				tempCircle.move(mousePosition.x, mousePosition.y);
-				tempCircle.setFillColor(Color(0, 0, 0));
-				circle.push_back(tempCircle);
-			}
-			if (inObject(mousePosition, buttonDetermine)) {
-				// Переводим координаты точек на поле (рисунка) в матрицу
-				Matrix<double> pixels(28, 28);
-				for (int i = 0; i < circle.size(); i++) {
-					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
-				}
-
-				// Переводим в понятный для нейронки формат
-				Matrix<double> preparedPixels = prepareValues(pixels);
-
-				// Опрос сети
-				Matrix<double> result = network.query(preparedPixels);
-				int maxIndex = 0;
-				for (int i = 0; i < result.getSize(); i++) {
-					if (result(maxIndex, 0) < result(i, 0)) maxIndex = i;
-				}
-
-				cout << maxIndex << endl;
-				
-				mousePressed = false;
-			}
-			if (inObject(mousePosition, buttonClear)) {
-				circle.clear();
-				textDetermine.setString(string());
-				mousePressed = false;
-			}
+		
+		for (auto it = objects.begin(); it != objects.end(); it++) {
+			window.draw(**it);
 		}
-#endif
-
-		window.draw(field);
-		window.draw(buttonDetermine);
-		window.draw(textButtonDetermine);
-		window.draw(buttonClear);
-		window.draw(textButtonClear);
-		window.draw(fieldOut);
+		
 		for (int i = 0; i < circle.size(); i++) {
 			window.draw(circle.at(i));
 		}
-		window.draw(textDetermine);
 		window.display();
 	}
+	for (auto it = objects.begin(); it != objects.end(); it++) {
+		delete *it;
+	}
+	delete fontTextButton;
 	return 0;
 }

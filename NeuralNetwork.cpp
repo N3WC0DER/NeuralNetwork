@@ -53,8 +53,6 @@ Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs) {
 void NeuralNetwork::trainNetwork(const int countIteration) {
 	ifstream trainDataset;
 	trainDataset.open(file, ios::in);
-	vector<string> lines;
-	lines.resize(countIteration);
 
 	string tempLine;
 
@@ -115,9 +113,6 @@ void NeuralNetwork::trainNetwork(const int countIteration) {
 void NeuralNetwork::testNetwork(const int countIteration) {
 	ifstream testDataset;
 	testDataset.open("mnist_dataset/mnist_test.csv", ios::in);
-
-	vector<string> lines;
-	lines.resize(countIteration);
 
 	string tempLine;
 
