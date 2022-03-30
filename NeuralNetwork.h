@@ -18,7 +18,7 @@ public:
 
 	void train(const Matrix<double> &inputs, const Matrix<double> &targets);
 	Matrix<double> query(const Matrix<double> &inputs);
-	void trainNetwork(const int countIteration);
+	void trainNetwork(const int countIteration, const int countEpochs);
 	void testNetwork(const int countIteration);
 	int getInputNodes() const;
 	int getHiddenNodes() const;

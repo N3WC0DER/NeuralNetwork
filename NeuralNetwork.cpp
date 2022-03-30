@@ -50,7 +50,7 @@ Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs) {
 	return finalOutputs;
 }
 
-void NeuralNetwork::trainNetwork(const int countIteration) {
+void NeuralNetwork::trainNetwork(const int countIteration, const int countEpochs) {
 	ifstream trainDataset;
 	trainDataset.open(file, ios::in);
 
@@ -62,46 +62,54 @@ void NeuralNetwork::trainNetwork(const int countIteration) {
 	int index = 0;
 	Matrix<double> targets(this->getOutputNodes(), 1);
 	Matrix<double> inputs(this->getInputNodes(), 1);
-	for (int i = 0; i < countIteration; i++) {
+	for (int j = 0; j < countEpochs; j++) {
+		cout << "Epoch: " << j << endl;
+		for (int i = 0; i < countIteration; i++) {
+			/*int process = 0;
+			if ((int)(((double) i / (double) countIteration) * 100) != process) {
+				process = ((double) i / (double) countIteration) * 100;
+				cout << "Process... " << process << "%" << endl;
+			}*/
 
-		string line = "";
-		getline(trainDataset, line, ',');
-		index = stoi(line);
-
-		line = "";
-		for (int j = 0; j < this->getInputNodes(); j++) {
-			if (j == this->getInputNodes() - 1) {
-				getline(trainDataset, line, '\n');
-				pixels.push_back(stoi(line));
-				continue;
-			}
+			string line = "";
 			getline(trainDataset, line, ',');
-			pixels.push_back(stoi(line));
-		}
+			index = stoi(line);
 
-		Matrix<int> temp(28, 28);
-
-		for (int i = 0; i < temp.getRows(); i++) {
-			for (int j = 0; j < temp.getCols(); j++) {
-				temp(j, i) = pixels.at(i * 28 + j);
+			line = "";
+			for (int j = 0; j < this->getInputNodes(); j++) {
+				if (j == this->getInputNodes() - 1) {
+					getline(trainDataset, line, '\n');
+					pixels.push_back(stoi(line));
+					continue;
+				}
+				getline(trainDataset, line, ',');
+				pixels.push_back(stoi(line));
 			}
-		}
 
-		for (int j = 0; j < pixels.size(); j++) {
-			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
-		}
+			Matrix<int> temp(28, 28);
 
-		for (int j = 0; j < this->getOutputNodes(); j++) {
-			targets(j, 0) = 0.01;
-			if (j == index) targets(j, 0) = 0.99;
-		}
+			for (int i = 0; i < temp.getRows(); i++) {
+				for (int j = 0; j < temp.getCols(); j++) {
+					temp(j, i) = pixels.at(i * 28 + j);
+				}
+			}
 
-		for (int j = 0; j < this->getInputNodes(); j++) {
-			inputs(j, 0) = pixels[j];
-		}
+			for (int j = 0; j < pixels.size(); j++) {
+				pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
+			}
 
-		this->train(inputs, targets);
-		pixels.clear();
+			for (int j = 0; j < this->getOutputNodes(); j++) {
+				targets(j, 0) = 0.01;
+				if (j == index) targets(j, 0) = 0.99;
+			}
+
+			for (int j = 0; j < this->getInputNodes(); j++) {
+				inputs(j, 0) = pixels[j];
+			}
+
+			this->train(inputs, targets);
+			pixels.clear();
+		}
 	}
 
 	cout << "Train completed!" << endl;

@@ -207,7 +207,7 @@ vector<Drawable*> initObjects(){
 		exit(EXIT_FAILURE);
 	}
 #else
-	if (!fontTextButtong->loadFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
+	if (!fontTextButton->loadFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -268,9 +268,11 @@ int main(){
 	const int inputNodes = 784,
 			  hiddenNodes = 100,
 			  outputNodes = 10;
-	double learningRate = 0.5;
+	double learningRate = 0.3;
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
+
+	network.trainNetwork(60100, 1);
 
 	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
 
@@ -316,7 +318,7 @@ int main(){
 		#ifdef __ANDROID__
 			Vector2f touchPosition = window.mapPixelToCoords(Touch::getPosition(0, window));
 		#else
-			Vector2f touchPosition = window.mapPixelToCoords(Mouse::getPosition());
+			Vector2f touchPosition = window.mapPixelToCoords(Mouse::getPosition(window));
 		#endif
 			if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(FIELD)))) {
 				CircleShape tempCircle(5.f);
