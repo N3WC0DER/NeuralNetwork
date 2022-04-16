@@ -1,5 +1,7 @@
 #include <iostream>
 #include <ctime>
+#include <sstream>
+#include <fstream>
 #include "lib/Matrix.h"
 
 #include "NeuralNetwork.h"
@@ -8,134 +10,8 @@
 #include <SFML/Graphics.hpp>
 
 using namespace sf;
-/*
-void trainNetwork(NeuralNetwork &network, const int countIteration){
-	ifstream trainDataset;
-	trainDataset.open("mnist_dataset/mnist_train.csv", ios::in);
-	vector<string> lines;
-	lines.resize(countIteration);
 
-	string tempLine;
-
-	trainDataset >> tempLine;
-
-	for(int i = 0; i < countIteration; i++){
-		trainDataset >> lines[i];
-	}
-
-	vector<double> pixels;
-	int index = 0;
-	vector<char> buff;
-	Matrix<double> targets(network.getOutputNodes(), 1);
-	Matrix<double> inputs(network.getInputNodes(), 1);
-	for(int i = 0; i < countIteration; i++){
-		for(int j = 0; j < lines[i].size(); j++){
-			if(isdigit(lines[i][j])){
-				if(j == 0){
-					index = lines[i][j] - '0';
-					continue;
-				}
-				buff.push_back(lines[i][j]);
-				if(j != lines[i].size()-1) continue;
-			}
-			if(buff.size() == 3) pixels.push_back((buff[0] - '0') * 100 + (buff[1] - '0') * 10 + (buff[2] - '0'));
-			else if(buff.size() == 2) pixels.push_back((buff[0] - '0') * 10 + buff[1] - '0');
-			else if(buff.size() == 1) pixels.push_back(buff[0] - '0');
-			
-			buff.clear();
-		}
-
-		for(int j = 0; j < pixels.size(); j++){
-			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
-		}
-
-		for(int j = 0; j < network.getOutputNodes(); j++){
-			targets(j, 0) = 0.01;
-			if(j == index) targets(j, 0) = 0.99;
-		}
-
-		for(int j = 0; j < network.getInputNodes(); j++){
-			inputs(j, 0) = pixels[j];
-		}
-
-		network.train(inputs, targets);
-		pixels.clear();
-	}
-
-	trainDataset.close();
-}
-
-void testNetwork(NeuralNetwork &network, const int countIteration){
-	ifstream testDataset;
-	testDataset.open("mnist_dataset/mnist_test.csv", ios::in);
-
-	vector<string> lines;
-	lines.resize(countIteration);
-
-	string tempLine;
-
-	testDataset >> tempLine;
-
-	for(int i = 0; i < countIteration; i++){
-		testDataset >> lines[i];
-	}
-
-	vector<double> pixels;
-	int index;
-	vector<char> buff;
-	Matrix<double> targets(1, network.getOutputNodes());
-	Matrix<double> inputs(1, network.getInputNodes());
-	int result = 0;
-	for(int i = 0; i < countIteration; i++){
-		for(int j = 0; j < lines[i].size(); j++){
-			if(isdigit(lines[i][j])){
-				if(j == 0){
-					index = lines[i][j] - '0';
-					continue;
-				}
-				buff.push_back(lines[i][j]);
-				if(!(j == lines[i].size()-1)) continue;
-			}
-			if(buff.size() == 3) pixels.push_back((buff[0] - '0') * 100 + (buff[1] - '0') * 10 + (buff[2] - '0'));
-			else if(buff.size() == 2) pixels.push_back((buff[0] - '0') * 10 + buff[1] - '0');
-			else if(buff.size() == 1) pixels.push_back(buff[0] - '0');
-			
-			buff.clear();
-		}
-
-		for(int j = 0; j < pixels.size(); j++){
-			pixels[j] = (pixels[j] / 255 * 0.99) + 0.01;
-		}
-
-		for(int j = 0; j < network.getOutputNodes(); j++){
-			targets(0, j) = 0.01;
-			if(j == index) targets(0, j) = 0.99;
-		}
-
-		for(int j = 0; j < network.getInputNodes(); j++){
-			inputs(0, j) = pixels[j];
-		}
-
-		Matrix<double> outputs = network.query(inputs);
-		pixels.clear();
-		cout << "------------" << i+1 << " attempts: " << endl;
-
-		int maxIndex = 0;
-		for(int j = 0; j < network.getOutputNodes(); j++){
-			if(outputs(maxIndex, 0) < outputs(j, 0)) maxIndex = j;
-		}
-
-		cout << "Output network: " << maxIndex << endl;
-		cout << "Target output: " << index << endl;
-		cout << outputs(maxIndex, 0) << endl;
-		if(maxIndex == index) result++;
-	}
-
-	cout << "Result: " << endl;
-	cout << (double) result / (double) countIteration * 100 << "% (" << result << "/" << countIteration << ")" << endl;
-	testDataset.close();
-}
-*/
+constexpr auto TRAIN = 0;;
 
 bool inObject(const Vector2f& mousePosition, const RectangleShape* object) {
 	if (mousePosition.x > object->getPosition().x &&
@@ -167,15 +43,64 @@ Matrix<double> prepareValues(Matrix<double>& pixels) {
 	for (int i = 0; i < inputs.getSize(); i++) {
 		inputs(i, 0) = (inputs(i, 0) / 255 * 0.99) + 0.01;
 	}
+
 	return inputs;
+}
+
+Matrix<int> prepareValues(Matrix<int>& pixels) {
+	for (int i = 1; i < pixels.getRows() - 1; i++) {
+		for (int j = 1; j < pixels.getCols() - 1; j++) {
+			if (pixels(i, j) == 0 && (pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252)) {
+				pixels(i, j) = getRandomNumber(132, 178);
+			}
+		}
+	}
+
+	//cout << pixels << endl;
+
+	Matrix<int> inputs(pixels.getSize(), 1);
+	for (int i = 0; i < pixels.getSize(); i++) {
+		inputs(i, 0) = pixels(i / 28, i % 28);
+	}
+	pixels();
+	return inputs;
+}
+
+void saveTrainData(Matrix<int>& pixels) {
+	ofstream trainData;
+	trainData.open("trainData.csv", ios::app);
+
+	if (!trainData.is_open()) {
+		exit(EXIT_FAILURE);
+	}
+
+	string line = "";
+	for (int i = 0; i < pixels.getRows(); i++) {
+		for (int j = 0; j < pixels.getCols(); j++) {
+			if (i == pixels.getRows() - 1 && j == pixels.getCols() - 1) {
+				line += to_string(pixels(i, j));
+				continue;
+			}
+			line += to_string(pixels(i, j));
+			line.push_back(',');
+		}
+	}
+	trainData << TRAIN << ",";
+
+	trainData << line;
+	trainData << '\n';
+
+	trainData.close();
 }
 
 enum Objects{
 	FIELD,
 	BUTTON_DETERMINE,
 	BUTTON_CLEAR,
+	BUTTON_TRAIN,
 	TEXT_BUTTON_DETERMINE,
 	TEXT_BUTTON_CLEAR,
+	TEXT_BUTTON_TRAIN,
 	FIELD_OUT,
 	TEXT_DETERMINE
 };
@@ -183,8 +108,6 @@ enum Objects{
 Font* fontTextButton;
 
 vector<Drawable*> initObjects(){
-	//map<string, Drawable*>* objects = new map<string, Drawable*>;
-  
 	RectangleShape* field = new RectangleShape(Vector2f(392.f, 392.f));
 	field->move(14, 14);
 	field->setFillColor(Color(255, 255, 255));
@@ -200,7 +123,13 @@ vector<Drawable*> initObjects(){
 	buttonClear->setFillColor(Color(255, 255, 255));
 	buttonClear->setOutlineThickness(1.f);
 	buttonClear->setOutlineColor(Color(0, 0, 0));
-  
+
+	RectangleShape* buttonTrain = new RectangleShape(Vector2f(392.f, 50.f));
+	buttonTrain->move(10, 550);
+	buttonTrain->setFillColor(Color(255, 255, 255));
+	buttonTrain->setOutlineThickness(1.f);
+	buttonTrain->setOutlineColor(Color(0, 0, 0));
+
 	fontTextButton = new Font;
 #if defined(__ANDROID__)
 	if (!fontTextButton->loadFromFile("arialmt.ttf")) {
@@ -225,36 +154,35 @@ vector<Drawable*> initObjects(){
 	textButtonClear->setString("Clear");
 	textButtonClear->setCharacterSize(30);
 	textButtonClear->setFillColor(Color(0, 0, 0));
+
+	Text* textButtonTrain = new Text;
+	textButtonTrain->setFont(*fontTextButton);
+	textButtonTrain->move(166, 555);
+	textButtonTrain->setString("Train");
+	textButtonTrain->setCharacterSize(30);
+	textButtonTrain->setFillColor(Color(0, 0, 0));
   
 	RectangleShape* fieldOut = new RectangleShape(Vector2f(392.f, 200.f));
-	fieldOut->move(10, 550);
+	fieldOut->move(10, 610);
 	fieldOut->setFillColor(Color(255, 255, 255));
 	fieldOut->setOutlineThickness(1.f);
 	fieldOut->setOutlineColor(Color(0, 0, 0));
   
 	Text* textDetermine = new Text;
 	textDetermine->setFont(*fontTextButton);
-	textDetermine->move(20, 560);
+	textDetermine->move(20, 620);
 	textDetermine->setCharacterSize(30);
 	textDetermine->setFillColor(Color(0, 0, 0));
-  
-	/*map<string, Drawable*>* objects = new map<string, Drawable*>{
-		{"field", field}, 
-		{"buttonDetermine", buttonDetermine}, 
-		{"buttonClear", buttonClear}, 
-		{"textButtonDetermine", textButtonDetermine}, 
-		{"textButtonClear", textButtonClear}, 
-		{"fieldOut", fieldOut}, 
-		{"textDetermine", textDetermine}
-	};*/
 	
 	vector<Drawable*> objects;
 	
 	objects.push_back(field);
 	objects.push_back(buttonDetermine);
 	objects.push_back(buttonClear);
+	objects.push_back(buttonTrain);
 	objects.push_back(textButtonDetermine);
 	objects.push_back(textButtonClear);
+	objects.push_back(textButtonTrain);
 	objects.push_back(fieldOut);
 	objects.push_back(textDetermine);
 	
@@ -272,13 +200,14 @@ int main(){
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-	network.trainNetwork(60100, 1);
+	//network.trainNetwork(5, 3);
 
 	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
 
 	bool mousePressed = false;
 	vector<CircleShape> circle;
 	vector<Drawable*> objects = initObjects();
+	bool isTraining = false;
 	
 	while (window.isOpen()) {
 		Event event;
@@ -325,31 +254,62 @@ int main(){
 				tempCircle.move(touchPosition.x, touchPosition.y);
 				tempCircle.setFillColor(Color(0, 0, 0));
 				circle.push_back(tempCircle);
-			}
-			if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_DETERMINE)))) {
-				// ��������� ���������� ����� �� ���� (�������) � �������
-				Matrix<double> pixels(28, 28);
-				for (int i = 0; i < circle.size(); i++) {
-					pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+			} else if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_DETERMINE)))) {
+				if (isTraining) {
+					Matrix<int> pixels(28, 28);
+					for (int i = 0; i < circle.size(); i++) {
+						pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+					}
+
+					Matrix<int> preparedPixels = prepareValues(pixels);
+					saveTrainData(preparedPixels);
+
+					ifstream trainData;
+					trainData.open("trainData.csv", ios::in);
+					if (!trainData.is_open()) {
+						exit(EXIT_FAILURE);
+					}
+
+					int count = 0;
+					while (trainData.ignore(numeric_limits<streamsize>::max(), '\n')) {
+						if (!trainData.eof())
+							count++;
+					}
+
+					ostringstream out;
+					out << count;
+					static_cast<Text*>(objects.at(TEXT_DETERMINE))->setString(out.str());
+
+					trainData.close();
+				} else {
+					Matrix<double> pixels(28, 28);
+					for (int i = 0; i < circle.size(); i++) {
+						pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+					}
+
+					Matrix<double> preparedPixels = prepareValues(pixels);
+
+					Matrix<double> result = network.query(preparedPixels);
+					int maxIndex = 0;
+					for (int i = 0; i < result.getSize(); i++) {
+						if (result(maxIndex, 0) < result(i, 0)) maxIndex = i;
+					}
+
+					ostringstream out;
+					out << "Output network: ";
+					out << maxIndex;
+					out << " " << result(maxIndex, 0);
+					static_cast<Text*>(objects.at(TEXT_DETERMINE))->setString(out.str());
 				}
-
-				// ��������� � �������� ��� �������� ������
-				Matrix<double> preparedPixels = prepareValues(pixels);
-
-				// ����� ����
-				Matrix<double> result = network.query(preparedPixels);
-				int maxIndex = 0;
-				for (int i = 0; i < result.getSize(); i++) {
-					if (result(maxIndex, 0) < result(i, 0)) maxIndex = i;
-				}
-
-				cout << maxIndex << endl;
-
 				mousePressed = false;
-			}
-			if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_CLEAR)))) {
+			} else if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_CLEAR)))) {
 				circle.clear();
-				static_cast<Text*>(objects.at(TEXT_DETERMINE))->setString(string());
+				if (!isTraining) {
+					static_cast<Text*>(objects.at(TEXT_DETERMINE))->setString(string());
+					mousePressed = false;
+				}
+			} else if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_TRAIN)))) {
+				isTraining = true;
 				mousePressed = false;
 			}
 		}

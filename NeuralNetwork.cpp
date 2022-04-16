@@ -52,24 +52,24 @@ Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs) {
 
 void NeuralNetwork::trainNetwork(const int countIteration, const int countEpochs) {
 	ifstream trainDataset;
-	trainDataset.open(file, ios::in);
-
-	string tempLine;
-
-	trainDataset >> tempLine;
 
 	vector<double> pixels;
 	int index = 0;
 	Matrix<double> targets(this->getOutputNodes(), 1);
 	Matrix<double> inputs(this->getInputNodes(), 1);
 	for (int j = 0; j < countEpochs; j++) {
+		trainDataset.open(file, ios::in);
+		string tempLine;
+		trainDataset >> tempLine;
+
 		cout << "Epoch: " << j << endl;
+
+		int process = 0;
 		for (int i = 0; i < countIteration; i++) {
-			/*int process = 0;
 			if ((int)(((double) i / (double) countIteration) * 100) != process) {
 				process = ((double) i / (double) countIteration) * 100;
 				cout << "Process... " << process << "%" << endl;
-			}*/
+			}
 
 			string line = "";
 			getline(trainDataset, line, ',');
@@ -110,11 +110,10 @@ void NeuralNetwork::trainNetwork(const int countIteration, const int countEpochs
 			this->train(inputs, targets);
 			pixels.clear();
 		}
+		trainDataset.close();
 	}
 
 	cout << "Train completed!" << endl;
-
-	trainDataset.close();
 	this->saveWeightsInFile();
 }
 
