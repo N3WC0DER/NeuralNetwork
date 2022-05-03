@@ -8,7 +8,7 @@ private:
 		hiddenNodes,
 		outputNodes;
 	double learningRate;
-	string file = "mnist_dataset/mnist_train.csv";
+	string file = "trainData.csv";
 
 	Matrix<double> weightsInputHidden;
 	Matrix<double> weightsHiddenOutput;
@@ -18,7 +18,7 @@ public:
 
 	void train(const Matrix<double> &inputs, const Matrix<double> &targets);
 	Matrix<double> query(const Matrix<double> &inputs);
-	void trainNetwork(const int countIteration, const int countEpochs);
+	void trainNetwork(const int countEpochs);
 	void testNetwork(const int countIteration);
 	int getInputNodes() const;
 	int getHiddenNodes() const;

@@ -11,7 +11,7 @@
 
 using namespace sf;
 
-constexpr auto TRAIN = 0;;
+constexpr auto TRAIN = 2;
 
 bool inObject(const Vector2f& mousePosition, const RectangleShape* object) {
 	if (mousePosition.x > object->getPosition().x &&
@@ -27,12 +27,10 @@ Matrix<double> prepareValues(Matrix<double>& pixels) {
 	for (int i = 1; i < pixels.getRows() - 1; i++) {
 		for (int j = 1; j < pixels.getCols() - 1; j++) {
 			if (pixels(i, j) == 0 && (pixels(i + 1, j) == 252 || pixels(i, j + 1) == 252 || pixels(i - 1, j) == 252 || pixels(i, j - 1) == 252)) {
-				pixels(i, j) = getRandomNumber(132, 178);
+				pixels(i, j) = getRandomNumber(10, 178);
 			}
 		}
 	}
-
-	//cout << pixels << endl;
 
 	Matrix<double> inputs(pixels.getSize(), 1);
 	for (int i = 0; i < pixels.getSize(); i++) {
@@ -55,8 +53,6 @@ Matrix<int> prepareValues(Matrix<int>& pixels) {
 			}
 		}
 	}
-
-	//cout << pixels << endl;
 
 	Matrix<int> inputs(pixels.getSize(), 1);
 	for (int i = 0; i < pixels.getSize(); i++) {
@@ -94,97 +90,94 @@ void saveTrainData(Matrix<int>& pixels) {
 }
 
 enum Objects{
-	FIELD,
+	FIELD = 1,
 	BUTTON_DETERMINE,
 	BUTTON_CLEAR,
 	BUTTON_TRAIN,
-	TEXT_BUTTON_DETERMINE,
-	TEXT_BUTTON_CLEAR,
-	TEXT_BUTTON_TRAIN,
-	FIELD_OUT,
-	TEXT_DETERMINE
+	TEXT_DETERMINE,
+	CANVAS,
+	FIELD_CANVAS
 };
 
-Font* fontTextButton;
+Font* mainFont;
+Font* font;
+Texture* background;
+Texture* menu;
+Texture* RedVad;
 
 vector<Drawable*> initObjects(){
-	RectangleShape* field = new RectangleShape(Vector2f(392.f, 392.f));
-	field->move(14, 14);
-	field->setFillColor(Color(255, 255, 255));
-  
-	RectangleShape* buttonDetermine = new RectangleShape(Vector2f(392.f, 50.f));
-	buttonDetermine->move(10, 430);
-	buttonDetermine->setFillColor(Color(255, 255, 255));
-	buttonDetermine->setOutlineThickness(1.f);
-	buttonDetermine->setOutlineColor(Color(0, 0, 0));
-  
-	RectangleShape* buttonClear = new RectangleShape(Vector2f(392.f, 50.f));
-	buttonClear->move(10, 490);
-	buttonClear->setFillColor(Color(255, 255, 255));
-	buttonClear->setOutlineThickness(1.f);
-	buttonClear->setOutlineColor(Color(0, 0, 0));
+	menu = new Texture;
+	if (!menu->loadFromFile("resources/menu.png")) {
+		exit(EXIT_FAILURE);
+	}
+	Sprite* s_menu = new Sprite;
+	s_menu->setTexture(*menu);
+	s_menu->setScale(0.857, 0.815);
+	
+	RectangleShape* field = new RectangleShape(Vector2f(1080.f, 1080.f));
+	field->setFillColor(Color::Transparent);
+	
+	RectangleShape* buttonDetermine = new RectangleShape(Vector2f(770.f, 160.f));
+	buttonDetermine->setFillColor(Color::Transparent);
+	buttonDetermine->move(155.f, 1985.f);
+	
+	RectangleShape* buttonClear = new RectangleShape(Vector2f(770.f, 160.f));
+	buttonClear->setFillColor(Color::Transparent);
+	buttonClear->move(155.f, 1780.f);
+	
+	RectangleShape* buttonTrain = new RectangleShape(Vector2f(770.f, 160.f));
+	buttonTrain->setFillColor(Color::Transparent);
+	buttonTrain->move(155.f, 1580.f);
 
-	RectangleShape* buttonTrain = new RectangleShape(Vector2f(392.f, 50.f));
-	buttonTrain->move(10, 550);
-	buttonTrain->setFillColor(Color(255, 255, 255));
-	buttonTrain->setOutlineThickness(1.f);
-	buttonTrain->setOutlineColor(Color(0, 0, 0));
-
-	fontTextButton = new Font;
+	mainFont = new Font;
 #if defined(__ANDROID__)
-	if (!fontTextButton->loadFromFile("arialmt.ttf")) {
+	if (!mainFont->loadFromFile("resources/fonts/arialmt.ttf")) {
 		exit(EXIT_FAILURE);
 	}
 #else
-	if (!fontTextButton->loadFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
+	if (!mainFont->loadFromFile("C:\\Windows\\Fonts\\ariblk.ttf")) {
 		exit(EXIT_FAILURE);
 	}
 #endif
-  
-	Text* textButtonDetermine = new Text;
-	textButtonDetermine->setFont(*fontTextButton);
-	textButtonDetermine->move(136, 435);
-	textButtonDetermine->setString("Determine");
-	textButtonDetermine->setCharacterSize(30);
-	textButtonDetermine->setFillColor(Color(0, 0, 0));
-  
-	Text* textButtonClear = new Text;
-	textButtonClear->setFont(*fontTextButton);
-	textButtonClear->move(166, 495);
-	textButtonClear->setString("Clear");
-	textButtonClear->setCharacterSize(30);
-	textButtonClear->setFillColor(Color(0, 0, 0));
-
-	Text* textButtonTrain = new Text;
-	textButtonTrain->setFont(*fontTextButton);
-	textButtonTrain->move(166, 555);
-	textButtonTrain->setString("Train");
-	textButtonTrain->setCharacterSize(30);
-	textButtonTrain->setFillColor(Color(0, 0, 0));
-  
-	RectangleShape* fieldOut = new RectangleShape(Vector2f(392.f, 200.f));
-	fieldOut->move(10, 610);
-	fieldOut->setFillColor(Color(255, 255, 255));
-	fieldOut->setOutlineThickness(1.f);
-	fieldOut->setOutlineColor(Color(0, 0, 0));
-  
+	
+	font = new Font;
+	if (!font->loadFromFile("resources/fonts/teddy-bear.ttf")) {
+		exit(EXIT_FAILURE);
+	}
+	
 	Text* textDetermine = new Text;
-	textDetermine->setFont(*fontTextButton);
-	textDetermine->move(20, 620);
-	textDetermine->setCharacterSize(30);
-	textDetermine->setFillColor(Color(0, 0, 0));
+	textDetermine->setFont(*mainFont);
+	textDetermine->setFillColor(Color::White);
+	textDetermine->setCharacterSize(50);
+	textDetermine->move(210.f, 1150.f);
+	
+	RedVad = new Texture;
+	if (!RedVad->loadFromFile("resources/redvad.png")) {
+		exit(EXIT_FAILURE);
+	}
+	Sprite* s_RedVad = new Sprite;
+	s_RedVad->setTexture(*RedVad);
+	s_RedVad->setScale(0.857, 0.815);
+	
+	RectangleShape* canvas = new RectangleShape(Vector2f(1008.f, 1008.f));
+	canvas->setFillColor(Color::Transparent);
+	canvas->move(36.f, 36.f);
+	
+	RectangleShape* fieldCanvas = new RectangleShape(Vector2f(28.f, 28.f));
+	fieldCanvas->setFillColor(Color::Transparent);
+	fieldCanvas->move(36.f, 36.f);
 	
 	vector<Drawable*> objects;
 	
+	objects.push_back(s_menu);
 	objects.push_back(field);
 	objects.push_back(buttonDetermine);
 	objects.push_back(buttonClear);
 	objects.push_back(buttonTrain);
-	objects.push_back(textButtonDetermine);
-	objects.push_back(textButtonClear);
-	objects.push_back(textButtonTrain);
-	objects.push_back(fieldOut);
 	objects.push_back(textDetermine);
+	objects.push_back(canvas);
+	objects.push_back(fieldCanvas);
+	objects.push_back(s_RedVad);
 	
 	return objects;
 }
@@ -193,6 +186,14 @@ int main(){
 	srand(static_cast<unsigned int>(time(0)));
 	rand();
 
+	background = new Texture;
+	if (!background->loadFromFile("resources/background.png")) {
+		exit(EXIT_FAILURE);
+	}
+	Sprite* s_background = new Sprite;
+	s_background->setTexture(*background);
+	s_background->setScale(0.857, 0.815);
+
 	const int inputNodes = 784,
 			  hiddenNodes = 100,
 			  outputNodes = 10;
@@ -200,25 +201,19 @@ int main(){
 
 	NeuralNetwork network(inputNodes, hiddenNodes, outputNodes, learningRate);
 
-	//network.trainNetwork(5, 3);
-
-	RenderWindow window(VideoMode(420, 910), "NeuralNetwork");
+	RenderWindow* window = new RenderWindow(VideoMode::getDesktopMode(), "NeuralNetwork");
 
 	bool mousePressed = false;
 	vector<CircleShape> circle;
 	vector<Drawable*> objects = initObjects();
 	bool isTraining = false;
 	
-	while (window.isOpen()) {
+	while (window->isOpen()) {
 		Event event;
-		while (window.pollEvent(event)) {
+		while (window->pollEvent(event)) {
 			switch (event.type) {
 			case Event::Closed:
-				for (auto it = objects.begin(); it != objects.end(); it++) {
-					delete *it;
-				}
-				delete fontTextButton;
-				window.close();
+				window->close();
 				break;
 #if defined(__ANDROID__)
 			case Event::TouchBegan:
@@ -241,24 +236,49 @@ int main(){
 #endif
 			}
 		}
-		window.clear(Color(221, 221, 221, 0));
+		window->clear(Color(0x222831));
 
 		if (mousePressed) {
 		#ifdef __ANDROID__
-			Vector2f touchPosition = window.mapPixelToCoords(Touch::getPosition(0, window));
+			Vector2f touchPosition = window->mapPixelToCoords(Touch::getPosition(0, *window));
 		#else
-			Vector2f touchPosition = window.mapPixelToCoords(Mouse::getPosition(window));
+			Vector2f touchPosition = window->mapPixelToCoords(Mouse::getPosition(*window));
 		#endif
 			if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(FIELD)))) {
-				CircleShape tempCircle(5.f);
+				CircleShape tempCircle(50.f);
 				tempCircle.move(touchPosition.x, touchPosition.y);
-				tempCircle.setFillColor(Color(0, 0, 0));
+				tempCircle.setFillColor(Color::White);
 				circle.push_back(tempCircle);
+				
+				/*if (!inObject(tempCircle.getPosition(), static_cast<RectangleShape*>(objects.at(FIELD_CANVAS)))) {
+					Vector2f extremeNegativePoints = Vector2f(1100.f, 1100.f);
+					Vector2f extremePositivePoints;
+					for (auto i = circle.begin(); i != circle.end(); i++) {
+						if (i->getPosition().x > extremePositivePoints.x) 
+							extremePositivePoints.x = i->getPosition().x;
+						if (i->getPosition().y > extremePositivePoints.y) 
+							extremePositivePoints.y = i->getPosition().y;
+						if (i->getPosition().x < extremeNegativePoints.x) 
+							extremeNegativePoints.x = i->getPosition().x;
+						if (i->getPosition().y < extremeNegativePoints.y) 
+							extremeNegativePoints.y = i->getPosition().y;
+					}
+					
+					if (!inObject(extremeNegativePoints, static_cast<RectangleShape*>(objects.at(FIELD_CANVAS))))
+						static_cast<RectangleShape*>(objects.at(FIELD_CANVAS))->setPosition(extremeNegativePoints);
+					if (!inObject(extremePositivePoints, static_cast<RectangleShape*>(objects.at(FIELD_CANVAS)))) {
+						Vector2f newPosition = Vector2f(static_cast<RectangleShape*>(objects.at(FIELD_CANVAS))->getSize().x * 2 + extremeNegativePoints.x - static_cast<RectangleShape*>(objects.at(FIELD_CANVAS))->getPosition().x, static_cast<RectangleShape*>(objects.at(FIELD_CANVAS))->getSize().y * 2 + extremeNegativePoints.y - static_cast<RectangleShape*>(objects.at(FIELD_CANVAS))->getPosition().y);
+						static_cast<RectangleShape*>(objects.at(FIELD_CANVAS))->setSize(newPosition);
+					}
+				}*/
 			} else if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_DETERMINE)))) {
 				if (isTraining) {
 					Matrix<int> pixels(28, 28);
 					for (int i = 0; i < circle.size(); i++) {
-						pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+						int row = circle.at(i).getPosition().y;
+						int col = circle.at(i).getPosition().x;
+						if (inObject(circle.at(i).getPosition(), static_cast<RectangleShape*>(objects.at(CANVAS))))
+							pixels((row - 36) / 36, (col - 36) / 36) = 252;
 					}
 
 					Matrix<int> preparedPixels = prepareValues(pixels);
@@ -284,11 +304,13 @@ int main(){
 				} else {
 					Matrix<double> pixels(28, 28);
 					for (int i = 0; i < circle.size(); i++) {
-						pixels(circle.at(i).getPosition().y / 14 - 1, circle.at(i).getPosition().x / 14 - 1) = 252;
+						int row = circle.at(i).getPosition().y;
+						int col = circle.at(i).getPosition().x;
+						if (inObject(circle.at(i).getPosition(), static_cast<RectangleShape*>(objects.at(CANVAS))))
+							pixels((row - 36) / 36, (col - 36) / 36) = 252;
 					}
 
 					Matrix<double> preparedPixels = prepareValues(pixels);
-
 					Matrix<double> result = network.query(preparedPixels);
 					int maxIndex = 0;
 					for (int i = 0; i < result.getSize(); i++) {
@@ -309,23 +331,38 @@ int main(){
 					mousePressed = false;
 				}
 			} else if (inObject(touchPosition, static_cast<RectangleShape*>(objects.at(BUTTON_TRAIN)))) {
-				isTraining = true;
+				ostringstream out;
+				out << "Trained...\n Wait, please";
+				static_cast<Text*>(objects.at(TEXT_DETERMINE))->setString(out.str());
+				out.clear();
+				
+				network.trainNetwork(3);
+
+				out << "Complete!";
+				static_cast<Text*>(objects.at(TEXT_DETERMINE))->setString(out.str());
 				mousePressed = false;
 			}
 		}
 		
-		for (auto it = objects.begin(); it != objects.end(); it++) {
-			window.draw(**it);
-		}
+		window->draw(*s_background);
 		
 		for (int i = 0; i < circle.size(); i++) {
-			window.draw(circle.at(i));
+			window->draw(circle.at(i));
 		}
-		window.display();
+		
+		for (auto it = objects.begin(); it != objects.end(); it++) {
+			window->draw(**it);
+		}
+		window->display();
 	}
 	for (auto it = objects.begin(); it != objects.end(); it++) {
 		delete *it;
 	}
-	delete fontTextButton;
+	delete mainFont;
+	delete font;
+	delete background;
+	delete menu;
+	delete RedVad;
+	delete window;
 	return 0;
 }

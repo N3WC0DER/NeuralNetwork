@@ -15,9 +15,6 @@ NeuralNetwork::NeuralNetwork(int inputNodes, int hiddenNodes, int outputNodes, d
 	this->weightsInputHidden.resize(this->hiddenNodes, this->inputNodes);
 	this->weightsHiddenOutput.resize(this->outputNodes, this->hiddenNodes);
 
-	//this->weightsInputHidden.random(-0.3, 0.3);
-	//this->weightsHiddenOutput.random(-0.3, 0.3);
-
 	this->receiveWeightsInFile();
 }
 
@@ -50,7 +47,7 @@ Matrix<double> NeuralNetwork::query(const Matrix<double> &inputs) {
 	return finalOutputs;
 }
 
-void NeuralNetwork::trainNetwork(const int countIteration, const int countEpochs) {
+void NeuralNetwork::trainNetwork(const int countEpochs) {
 	ifstream trainDataset;
 
 	vector<double> pixels;
@@ -59,9 +56,15 @@ void NeuralNetwork::trainNetwork(const int countIteration, const int countEpochs
 	Matrix<double> inputs(this->getInputNodes(), 1);
 	for (int j = 0; j < countEpochs; j++) {
 		trainDataset.open(file, ios::in);
-		string tempLine;
-		trainDataset >> tempLine;
-
+		
+		int countIteration = 0;
+		while (trainDataset.ignore(numeric_limits<streamsize>::max(), '\n')) {
+			if (!trainDataset.eof())
+				countIteration++;
+		}
+		trainDataset.close();
+		trainDataset.open(file, ios::in);
+		
 		cout << "Epoch: " << j << endl;
 
 		int process = 0;
@@ -227,6 +230,24 @@ void NeuralNetwork::saveWeightsInFile() const{
 
 void NeuralNetwork::receiveWeightsInFile() {
 	ifstream weights;
+	weights.open("weights.csv");
+	if (!weights.is_open()) {
+		exit(EXIT_FAILURE);
+	}
+
+	int count = 0;
+	while (weights.ignore(numeric_limits<streamsize>::max(), '\n')) {
+		if (!weights.eof())
+			count++;
+	}
+	
+	if (count == 0) {
+		this->weightsInputHidden.random(-0.3, 0.3);
+		this->weightsHiddenOutput.random(-0.3, 0.3);
+		return;
+	}
+	
+	weights.close();
 	weights.open("weights.csv");
 	if (!weights.is_open()) {
 		exit(EXIT_FAILURE);

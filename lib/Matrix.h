@@ -238,6 +238,12 @@ private:
 	void memoryAlloc();
 	void memoryClear();
 public:
+	using difference_type = std::ptrdiff_t;
+  using value_type = T;
+  using pointer = T*;
+  using reference = T&;
+  using iterator_category = std::output_iterator_tag;
+	
 	Matrix();
 	Matrix(const int rows, const int cols);
 	Matrix(const MatrixT& matrix);
